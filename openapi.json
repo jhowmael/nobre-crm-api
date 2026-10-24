@@ -1,0 +1,2032 @@
+{
+  "components": {
+    "schemas": {
+      "AttentionCode": {
+        "enum": [
+          "PROPOSAL_EXPIRED",
+          "PROPOSAL_EXPIRES_TODAY",
+          "PROPOSAL_EXPIRING",
+          "PROPOSAL_MISSING",
+          "PROPOSAL_AFTER_EVENT",
+          "NO_CONTACT_REGISTERED",
+          "NO_CONTACT",
+          "EVENT_NEAR",
+          "EVENT_PAST"
+        ],
+        "type": "string"
+      },
+      "AttentionLevel": {
+        "enum": [
+          "none",
+          "medium",
+          "high"
+        ],
+        "type": "string"
+      },
+      "AttentionResponseDto": {
+        "properties": {
+          "level": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AttentionLevel"
+              }
+            ]
+          },
+          "signals": {
+            "items": {
+              "$ref": "#/components/schemas/AttentionSignalResponseDto"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "level",
+          "signals"
+        ],
+        "type": "object"
+      },
+      "AttentionSignalLevel": {
+        "enum": [
+          "high",
+          "medium"
+        ],
+        "type": "string"
+      },
+      "AttentionSignalResponseDto": {
+        "properties": {
+          "code": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AttentionCode"
+              }
+            ],
+            "example": "PROPOSAL_EXPIRED"
+          },
+          "level": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AttentionSignalLevel"
+              }
+            ]
+          },
+          "message": {
+            "example": "Proposta vencida há 2 dias",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "level",
+          "message"
+        ],
+        "type": "object"
+      },
+      "BlockedReasonsByTargetResponseDto": {
+        "properties": {
+          "APRESENTACAO_ORCAMENTO": {
+            "nullable": true,
+            "type": "string"
+          },
+          "FECHAMENTO": {
+            "nullable": true,
+            "type": "string"
+          },
+          "FOLLOW_UP": {
+            "nullable": true,
+            "type": "string"
+          },
+          "FORECAST": {
+            "nullable": true,
+            "type": "string"
+          },
+          "PERDIDA": {
+            "nullable": true,
+            "type": "string"
+          },
+          "PRIMEIRO_CONTATO": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "PRIMEIRO_CONTATO",
+          "APRESENTACAO_ORCAMENTO",
+          "FOLLOW_UP",
+          "FORECAST",
+          "FECHAMENTO",
+          "PERDIDA"
+        ],
+        "type": "object"
+      },
+      "BlockedReasonsResponseDto": {
+        "properties": {
+          "APRESENTACAO_ORCAMENTO": {
+            "$ref": "#/components/schemas/BlockedReasonsByTargetResponseDto"
+          },
+          "FECHAMENTO": {
+            "$ref": "#/components/schemas/BlockedReasonsByTargetResponseDto"
+          },
+          "FOLLOW_UP": {
+            "$ref": "#/components/schemas/BlockedReasonsByTargetResponseDto"
+          },
+          "FORECAST": {
+            "$ref": "#/components/schemas/BlockedReasonsByTargetResponseDto"
+          },
+          "PERDIDA": {
+            "$ref": "#/components/schemas/BlockedReasonsByTargetResponseDto"
+          },
+          "PRIMEIRO_CONTATO": {
+            "$ref": "#/components/schemas/BlockedReasonsByTargetResponseDto"
+          }
+        },
+        "required": [
+          "PRIMEIRO_CONTATO",
+          "APRESENTACAO_ORCAMENTO",
+          "FOLLOW_UP",
+          "FORECAST",
+          "FECHAMENTO",
+          "PERDIDA"
+        ],
+        "type": "object"
+      },
+      "CatalogsResponseDto": {
+        "properties": {
+          "blockedReasons": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BlockedReasonsResponseDto"
+              }
+            ],
+            "description": "Matriz origem x destino com o motivo do bloqueio; null quando a transição é permitida ou origem e destino são iguais."
+          },
+          "lossReasons": {
+            "items": {
+              "$ref": "#/components/schemas/LossReasonCatalogItemResponseDto"
+            },
+            "type": "array"
+          },
+          "stages": {
+            "items": {
+              "$ref": "#/components/schemas/StageCatalogItemResponseDto"
+            },
+            "type": "array"
+          },
+          "today": {
+            "description": "Data de referência do servidor (AAAA-MM-DD).",
+            "example": "2026-10-15",
+            "type": "string"
+          },
+          "transitions": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/StageTransitionsResponseDto"
+              }
+            ],
+            "description": "Etapas de destino permitidas a partir de cada etapa."
+          }
+        },
+        "required": [
+          "today",
+          "stages",
+          "transitions",
+          "blockedReasons",
+          "lossReasons"
+        ],
+        "type": "object"
+      },
+      "ContactLogResponseDto": {
+        "properties": {
+          "contactedAt": {
+            "example": "2026-10-15",
+            "format": "date",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "note": {
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "contactedAt",
+          "note"
+        ],
+        "type": "object"
+      },
+      "CreateContactLogRequestDto": {
+        "properties": {
+          "contactedAt": {
+            "description": "Padrão: data de hoje.",
+            "example": "2026-10-15",
+            "format": "date",
+            "type": "string"
+          },
+          "note": {
+            "example": "Cliente pediu ajuste na quantidade.",
+            "type": "string"
+          },
+          "sellerId": {
+            "description": "Vendedor que fez o contato.",
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "type": "object"
+      },
+      "CreateOpportunityItemRequestDto": {
+        "properties": {
+          "name": {
+            "example": "Agenda executiva",
+            "type": "string"
+          },
+          "quantity": {
+            "example": 1000,
+            "minimum": 1,
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "quantity"
+        ],
+        "type": "object"
+      },
+      "CreateOpportunityRequestDto": {
+        "properties": {
+          "company": {
+            "example": "Tech Alpha Ltda",
+            "type": "string"
+          },
+          "estimatedValue": {
+            "example": 4500,
+            "type": "number"
+          },
+          "eventDate": {
+            "example": "2026-11-30",
+            "format": "date",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/GiftItemRequestDto"
+            },
+            "type": "array"
+          },
+          "sellerId": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        "required": [
+          "company",
+          "sellerId"
+        ],
+        "type": "object"
+      },
+      "DatabaseStatus": {
+        "enum": [
+          "up",
+          "down"
+        ],
+        "type": "string"
+      },
+      "ErrorResponseDto": {
+        "properties": {
+          "error": {
+            "example": "Unprocessable Entity",
+            "type": "string"
+          },
+          "errors": {
+            "description": "Lista de violações; vazia quando o erro não é de campo.",
+            "items": {
+              "$ref": "#/components/schemas/RuleViolationResponseDto"
+            },
+            "type": "array"
+          },
+          "message": {
+            "example": "Informe o valor estimado para gerar o orçamento.",
+            "type": "string"
+          },
+          "statusCode": {
+            "example": 422,
+            "type": "number"
+          }
+        },
+        "required": [
+          "statusCode",
+          "error",
+          "message",
+          "errors"
+        ],
+        "type": "object"
+      },
+      "FollowupTaskResponseDto": {
+        "properties": {
+          "company": {
+            "example": "Clínica Vida",
+            "type": "string"
+          },
+          "dueDate": {
+            "example": "2026-10-15",
+            "format": "date",
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "level": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AttentionSignalLevel"
+              }
+            ],
+            "description": "high: agir hoje; medium: acompanhar."
+          },
+          "opportunityCode": {
+            "example": "OPP-2003",
+            "type": "string"
+          },
+          "opportunityId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "reason": {
+            "example": "Evento em 3 dias e ainda em Follow-up",
+            "type": "string"
+          },
+          "reasonKey": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/AttentionCode"
+              }
+            ],
+            "example": "EVENT_NEAR"
+          },
+          "sellerId": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FollowupTaskStatus"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "opportunityId",
+          "opportunityCode",
+          "company",
+          "sellerId",
+          "reasonKey",
+          "reason",
+          "level",
+          "dueDate",
+          "status"
+        ],
+        "type": "object"
+      },
+      "FollowupTaskStatus": {
+        "enum": [
+          "OPEN",
+          "DONE",
+          "DISMISSED"
+        ],
+        "type": "string"
+      },
+      "GenerateFollowupTasksResponseDto": {
+        "properties": {
+          "created": {
+            "description": "Tarefas novas criadas.",
+            "type": "number"
+          },
+          "dismissed": {
+            "description": "Tarefas abertas que deixaram de ser necessárias e foram dispensadas.",
+            "type": "number"
+          }
+        },
+        "required": [
+          "created",
+          "dismissed"
+        ],
+        "type": "object"
+      },
+      "GiftItemRequestDto": {
+        "properties": {
+          "name": {
+            "example": "Caneca personalizada",
+            "type": "string"
+          },
+          "quantity": {
+            "example": 300,
+            "minimum": 1,
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "quantity"
+        ],
+        "type": "object"
+      },
+      "GiftItemResponseDto": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "example": "Caneca personalizada",
+            "type": "string"
+          },
+          "quantity": {
+            "example": 300,
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "quantity"
+        ],
+        "type": "object"
+      },
+      "HealthResponseDto": {
+        "properties": {
+          "database": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/DatabaseStatus"
+              }
+            ]
+          },
+          "status": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/HealthStatus"
+              }
+            ]
+          }
+        },
+        "required": [
+          "status",
+          "database"
+        ],
+        "type": "object"
+      },
+      "HealthStatus": {
+        "enum": [
+          "ok",
+          "error"
+        ],
+        "type": "string"
+      },
+      "LossReasonCatalogItemResponseDto": {
+        "properties": {
+          "active": {
+            "description": "Somente motivos ativos podem ser escolhidos em novas perdas.",
+            "type": "boolean"
+          },
+          "code": {
+            "example": "PRICE",
+            "type": "string"
+          },
+          "label": {
+            "example": "Preço acima do orçamento do cliente",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "label",
+          "active"
+        ],
+        "type": "object"
+      },
+      "LossReasonSummaryResponseDto": {
+        "properties": {
+          "code": {
+            "example": "COMPETITOR",
+            "type": "string"
+          },
+          "label": {
+            "example": "Escolheu outro fornecedor",
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "label"
+        ],
+        "type": "object"
+      },
+      "MoveStageRequestDto": {
+        "properties": {
+          "estimatedValue": {
+            "description": "Exigido em Apresentação de Orçamento, se ainda não informado.",
+            "type": "number"
+          },
+          "expectedVersion": {
+            "description": "Versão lida pelo cliente, para detectar movimentação concorrente.",
+            "type": "number"
+          },
+          "items": {
+            "description": "Substitui os itens atuais.",
+            "items": {
+              "$ref": "#/components/schemas/GiftItemRequestDto"
+            },
+            "type": "array"
+          },
+          "lossNote": {
+            "description": "Detalhe opcional do motivo da perda.",
+            "example": "Concorrente ofereceu frete grátis.",
+            "type": "string"
+          },
+          "lossReasonCode": {
+            "description": "Obrigatório ao mover para Perdida: código ativo de GET /catalogs.",
+            "example": "PRICE",
+            "type": "string"
+          },
+          "proposalValidUntil": {
+            "example": "2026-10-22",
+            "format": "date",
+            "type": "string"
+          },
+          "to": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Stage"
+              }
+            ]
+          }
+        },
+        "required": [
+          "to",
+          "expectedVersion"
+        ],
+        "type": "object"
+      },
+      "OpportunityItemResponseDto": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "example": "Agenda executiva",
+            "type": "string"
+          },
+          "quantity": {
+            "example": 1000,
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "quantity"
+        ],
+        "type": "object"
+      },
+      "OpportunityResponseDto": {
+        "properties": {
+          "allowedTransitions": {
+            "items": {
+              "$ref": "#/components/schemas/Stage"
+            },
+            "type": "array"
+          },
+          "attention": {
+            "$ref": "#/components/schemas/AttentionResponseDto"
+          },
+          "code": {
+            "example": "OPP-2001",
+            "type": "string"
+          },
+          "company": {
+            "example": "Tech Alpha Ltda",
+            "type": "string"
+          },
+          "estimatedValue": {
+            "example": 4500,
+            "nullable": true,
+            "type": "number"
+          },
+          "eventDate": {
+            "example": "2026-11-30",
+            "format": "date",
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/GiftItemResponseDto"
+            },
+            "type": "array"
+          },
+          "lastContactAt": {
+            "example": "2026-10-14",
+            "format": "date",
+            "nullable": true,
+            "type": "string"
+          },
+          "lossNote": {
+            "description": "Detalhe livre do motivo da perda.",
+            "nullable": true,
+            "type": "string"
+          },
+          "lossReason": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/LossReasonSummaryResponseDto"
+              }
+            ],
+            "description": "Preenchido somente em oportunidades Perdidas.",
+            "nullable": true,
+            "type": "object"
+          },
+          "lossReasonPending": {
+            "description": "Perdida com motivo ainda não informado (dado migrado): pode ser completado com PATCH /opportunities/:id.",
+            "type": "boolean"
+          },
+          "proposalValidUntil": {
+            "example": "2026-10-22",
+            "format": "date",
+            "nullable": true,
+            "type": "string"
+          },
+          "seller": {
+            "$ref": "#/components/schemas/SellerSummaryResponseDto"
+          },
+          "stage": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Stage"
+              }
+            ]
+          },
+          "version": {
+            "example": 1,
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "company",
+          "seller",
+          "items",
+          "estimatedValue",
+          "lastContactAt",
+          "proposalValidUntil",
+          "eventDate",
+          "stage",
+          "lossReason",
+          "lossNote",
+          "lossReasonPending",
+          "version",
+          "attention",
+          "allowedTransitions"
+        ],
+        "type": "object"
+      },
+      "OpportunitySortField": {
+        "enum": [
+          "number",
+          "company",
+          "eventDate",
+          "estimatedValue"
+        ],
+        "type": "string"
+      },
+      "RuleViolationResponseDto": {
+        "properties": {
+          "field": {
+            "description": "Campo ou regra que impediu a operação.",
+            "example": "estimatedValue",
+            "type": "string"
+          },
+          "message": {
+            "example": "Informe o valor estimado para gerar o orçamento.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "message"
+        ],
+        "type": "object"
+      },
+      "SellerResponseDto": {
+        "properties": {
+          "email": {
+            "nullable": true,
+            "type": "string"
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "example": "Ana",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "email"
+        ],
+        "type": "object"
+      },
+      "SellerSummaryResponseDto": {
+        "properties": {
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "name": {
+            "example": "Ana",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "type": "object"
+      },
+      "SortDirection": {
+        "enum": [
+          "asc",
+          "desc"
+        ],
+        "type": "string"
+      },
+      "Stage": {
+        "enum": [
+          "PRIMEIRO_CONTATO",
+          "APRESENTACAO_ORCAMENTO",
+          "FOLLOW_UP",
+          "FORECAST",
+          "FECHAMENTO",
+          "PERDIDA"
+        ],
+        "type": "string"
+      },
+      "StageCatalogItemResponseDto": {
+        "properties": {
+          "final": {
+            "description": "Etapa final (Fechamento e Perdida) não pode ser movida.",
+            "type": "boolean"
+          },
+          "hint": {
+            "example": "Orçamento montado e enviado ao cliente. Exige valor estimado e ao menos um brinde.",
+            "type": "string"
+          },
+          "id": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Stage"
+              }
+            ]
+          },
+          "label": {
+            "example": "Apresentação de Orçamento",
+            "type": "string"
+          },
+          "order": {
+            "description": "Posição de exibição, começando em 1.",
+            "example": 2,
+            "type": "number"
+          },
+          "requirement": {
+            "example": "Exige valor estimado e ao menos um brinde.",
+            "nullable": true,
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "label",
+          "order",
+          "final",
+          "hint",
+          "requirement"
+        ],
+        "type": "object"
+      },
+      "StageHistoryResponseDto": {
+        "properties": {
+          "at": {
+            "example": "2026-10-15T10:00:00.000Z",
+            "format": "date-time",
+            "type": "string"
+          },
+          "from": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Stage"
+              }
+            ],
+            "description": "Etapa de origem; null na criação.",
+            "nullable": true
+          },
+          "id": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "note": {
+            "example": "Escolheu outro fornecedor: concorrente ofereceu frete grátis",
+            "nullable": true,
+            "type": "string"
+          },
+          "to": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/Stage"
+              }
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "from",
+          "to",
+          "note",
+          "at"
+        ],
+        "type": "object"
+      },
+      "StageTransitionsResponseDto": {
+        "properties": {
+          "APRESENTACAO_ORCAMENTO": {
+            "items": {
+              "$ref": "#/components/schemas/Stage"
+            },
+            "type": "array"
+          },
+          "FECHAMENTO": {
+            "items": {
+              "$ref": "#/components/schemas/Stage"
+            },
+            "type": "array"
+          },
+          "FOLLOW_UP": {
+            "items": {
+              "$ref": "#/components/schemas/Stage"
+            },
+            "type": "array"
+          },
+          "FORECAST": {
+            "items": {
+              "$ref": "#/components/schemas/Stage"
+            },
+            "type": "array"
+          },
+          "PERDIDA": {
+            "items": {
+              "$ref": "#/components/schemas/Stage"
+            },
+            "type": "array"
+          },
+          "PRIMEIRO_CONTATO": {
+            "items": {
+              "$ref": "#/components/schemas/Stage"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "PRIMEIRO_CONTATO",
+          "APRESENTACAO_ORCAMENTO",
+          "FOLLOW_UP",
+          "FORECAST",
+          "FECHAMENTO",
+          "PERDIDA"
+        ],
+        "type": "object"
+      },
+      "UpdateOpportunityRequestDto": {
+        "properties": {
+          "estimatedValue": {
+            "example": 4500,
+            "type": "number"
+          },
+          "eventDate": {
+            "example": "2026-11-30",
+            "format": "date",
+            "type": "string"
+          },
+          "expectedVersion": {
+            "description": "Versão lida pelo cliente, para detectar edição concorrente.",
+            "type": "number"
+          },
+          "lossNote": {
+            "description": "Detalhe opcional do motivo da perda.",
+            "example": "Cliente fechou com o fornecedor da matriz.",
+            "type": "string"
+          },
+          "lossReasonCode": {
+            "description": "Somente para oportunidades Perdidas com motivo pendente. Código ativo de GET /catalogs.",
+            "example": "COMPETITOR",
+            "type": "string"
+          },
+          "proposalValidUntil": {
+            "example": "2026-10-22",
+            "format": "date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "expectedVersion"
+        ],
+        "type": "object"
+      }
+    },
+    "securitySchemes": {
+      "api-key": {
+        "description": "Chave de API (exigida quando API_KEY está definida).",
+        "in": "header",
+        "name": "x-api-key",
+        "type": "apiKey"
+      }
+    }
+  },
+  "info": {
+    "contact": {},
+    "description": "API do funil de vendas da Nobre Brindes. Quando a variável API_KEY está definida no servidor, envie o cabeçalho x-api-key em todas as rotas, exceto /health e /docs.",
+    "title": "Nobre CRM API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.0.0",
+  "paths": {
+    "/catalogs": {
+      "get": {
+        "operationId": "CatalogsController_get",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CatalogsResponseDto"
+                }
+              }
+            },
+            "description": "Etapas, transições, bloqueios e motivos de perda: a fonte das regras para o frontend."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "tags": [
+          "catalogs"
+        ]
+      }
+    },
+    "/followup-tasks": {
+      "get": {
+        "operationId": "FollowupTasksController_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "sellerId",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/FollowupTaskStatus"
+                }
+              ],
+              "default": "OPEN"
+            }
+          },
+          {
+            "description": "Tarefas com vencimento até esta data. Padrão: hoje.",
+            "in": "query",
+            "name": "dueUntil",
+            "required": false,
+            "schema": {
+              "example": "2026-10-15",
+              "format": "date",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/FollowupTaskResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Entrada em formato inválido."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "tags": [
+          "followup-tasks"
+        ]
+      }
+    },
+    "/followup-tasks/generate": {
+      "post": {
+        "operationId": "FollowupTasksController_generate",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GenerateFollowupTasksResponseDto"
+                }
+              }
+            },
+            "description": "Executa a mesma rotina do agendamento diário."
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Entrada em formato inválido."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "tags": [
+          "followup-tasks"
+        ]
+      }
+    },
+    "/followup-tasks/{id}/done": {
+      "patch": {
+        "operationId": "FollowupTasksController_complete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FollowupTaskResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Entrada em formato inválido."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Tarefa não encontrada."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Tarefa já encerrada."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "tags": [
+          "followup-tasks"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "HealthController_check",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponseDto"
+                }
+              }
+            },
+            "description": "Banco de dados indisponível."
+          }
+        },
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/opportunities": {
+      "get": {
+        "operationId": "OpportunitiesController_list",
+        "parameters": [
+          {
+            "description": "Busca por empresa, código (OPP-2001), vendedor ou brinde.",
+            "in": "query",
+            "name": "search",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sellerId",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "stage",
+            "required": false,
+            "schema": {
+              "$ref": "#/components/schemas/Stage"
+            }
+          },
+          {
+            "description": "Somente oportunidades que exigem atenção.",
+            "in": "query",
+            "name": "onlyAttention",
+            "required": false,
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "description": "Página (começa em 1). Ao enviar page ou pageSize, a resposta traz o cabeçalho X-Total-Count.",
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "description": "Itens por página (padrão 20 quando page é enviado).",
+            "in": "query",
+            "name": "pageSize",
+            "required": false,
+            "schema": {
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "sort",
+            "required": false,
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/OpportunitySortField"
+                }
+              ],
+              "default": "number"
+            }
+          },
+          {
+            "description": "Valores vazios ficam sempre por último.",
+            "in": "query",
+            "name": "order",
+            "required": false,
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/components/schemas/SortDirection"
+                }
+              ],
+              "default": "asc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OpportunityResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "",
+            "headers": {
+              "X-Total-Count": {
+                "description": "Total de registros do filtro; enviado somente quando page ou pageSize são informados.",
+                "schema": {
+                  "type": "integer"
+                }
+              }
+            }
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Entrada em formato inválido."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "tags": [
+          "opportunities"
+        ]
+      },
+      "post": {
+        "operationId": "OpportunitiesController_create",
+        "parameters": [],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOpportunityRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpportunityResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Entrada em formato inválido."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Vendedor inexistente."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "tags": [
+          "opportunities"
+        ]
+      }
+    },
+    "/opportunities/{id}": {
+      "get": {
+        "operationId": "OpportunitiesController_findOne",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpportunityResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Entrada em formato inválido."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Oportunidade não encontrada."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "tags": [
+          "opportunities"
+        ]
+      },
+      "patch": {
+        "operationId": "OpportunitiesController_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateOpportunityRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpportunityResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Entrada em formato inválido."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Oportunidade não encontrada."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Versão desatualizada."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Campo não editável na etapa atual ou motivo de perda inválido."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "tags": [
+          "opportunities"
+        ]
+      }
+    },
+    "/opportunities/{id}/stage": {
+      "patch": {
+        "operationId": "OpportunitiesController_moveStage",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MoveStageRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpportunityResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Entrada em formato inválido."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Oportunidade não encontrada."
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Versão desatualizada."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Transição inválida ou dados obrigatórios ausentes."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "tags": [
+          "opportunities"
+        ]
+      }
+    },
+    "/opportunities/{opportunityId}/contacts": {
+      "get": {
+        "operationId": "ContactLogsController_list",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "opportunityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ContactLogResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Entrada em formato inválido."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Oportunidade não encontrada."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "tags": [
+          "contact-logs"
+        ]
+      },
+      "post": {
+        "operationId": "ContactLogsController_register",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "opportunityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateContactLogRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ContactLogResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Entrada em formato inválido."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Oportunidade não encontrada."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Oportunidade em etapa final ou data no futuro."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "tags": [
+          "contact-logs"
+        ]
+      }
+    },
+    "/opportunities/{opportunityId}/history": {
+      "get": {
+        "operationId": "StageHistoriesController_list",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "opportunityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/StageHistoryResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Identificador inválido."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Oportunidade não encontrada."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "tags": [
+          "stage-histories"
+        ]
+      }
+    },
+    "/opportunities/{opportunityId}/items": {
+      "get": {
+        "operationId": "OpportunityItemsController_list",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "opportunityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/OpportunityItemResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Entrada em formato inválido."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Oportunidade ou item não encontrado."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "tags": [
+          "opportunity-items"
+        ]
+      },
+      "post": {
+        "operationId": "OpportunityItemsController_add",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "opportunityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateOpportunityItemRequestDto"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OpportunityItemResponseDto"
+                }
+              }
+            },
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Entrada em formato inválido."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Oportunidade ou item não encontrado."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Oportunidade em etapa final."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "tags": [
+          "opportunity-items"
+        ]
+      }
+    },
+    "/opportunities/{opportunityId}/items/{id}": {
+      "delete": {
+        "operationId": "OpportunityItemsController_remove",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "opportunityId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Entrada em formato inválido."
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Oportunidade ou item não encontrado."
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponseDto"
+                }
+              }
+            },
+            "description": "Não é possível remover o último item após o orçamento."
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "tags": [
+          "opportunity-items"
+        ]
+      }
+    },
+    "/sellers": {
+      "get": {
+        "operationId": "SellersController_list",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SellerResponseDto"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "api-key": []
+          }
+        ],
+        "tags": [
+          "sellers"
+        ]
+      }
+    }
+  },
+  "servers": [],
+  "tags": []
+}
