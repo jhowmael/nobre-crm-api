@@ -1,10 +1,12 @@
 import { ConflictException, Injectable, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
 import { ClockService } from '../../common/clock/clock.service.js';
-import { fromDateOnly } from '../../common/utils/dates.js';
+import { fromDateOnly, toDateOnly } from '../../common/utils/dates.js';
 import { Stage } from '../../generated/prisma/enums.js';
 import { CatalogsRepository } from '../catalogs/catalogs.repository.js';
 import { StageHistoriesRepository } from '../stage-histories/stage-histories.repository.js';
+import { evaluateAttention } from './domain/attention.js';
 import {
+  allowedTransitions,
   isFinalStage,
   isLossReasonPending,
   validateLossReason,
@@ -20,8 +22,13 @@ import {
   type UpdateOpportunityRequestDto,
 } from './dto/opportunities-request.dto.js';
 import type { OpportunityResponseDto } from './dto/opportunities-response.dto.js';
-import { toOpportunityResponse } from './opportunities.mapper.js';
-import { OpportunitiesRepository, type OpportunityFilters, type OpportunitySorting, type PageWindow } from './opportunities.repository.js';
+import {
+  OpportunitiesRepository,
+  type OpportunityFilters,
+  type OpportunityRecord,
+  type OpportunitySorting,
+  type PageWindow,
+} from './opportunities.repository.js';
 
 const STALE_MESSAGE = 'A oportunidade foi alterada por outra pessoa. Atualize e tente novamente.';
 
@@ -30,6 +37,31 @@ const unprocessable = (errors: RuleViolation[]) => new UnprocessableEntityExcept
 const cleanText = (value: string | undefined) => {
   const trimmed = value?.trim();
   return trimmed ? trimmed : null;
+};
+
+const toResponse = (record: OpportunityRecord, today: string): OpportunityResponseDto => {
+  const lastContactAt = toDateOnly(record.lastContactAt);
+  const proposalValidUntil = toDateOnly(record.proposalValidUntil);
+  const eventDate = toDateOnly(record.eventDate);
+
+  return {
+    id: record.id,
+    code: `OPP-${record.number}`,
+    company: record.company,
+    seller: record.seller,
+    items: record.items.map((item) => ({ id: item.id, name: item.name, quantity: item.quantity })),
+    estimatedValue: record.estimatedValue == null ? null : record.estimatedValue.toNumber(),
+    lastContactAt,
+    proposalValidUntil,
+    eventDate,
+    stage: record.stage,
+    lossReason: record.lossReason ? { code: record.lossReason.code, label: record.lossReason.label } : null,
+    lossNote: record.lossNote,
+    lossReasonPending: isLossReasonPending(record.stage, record.lossReasonCode),
+    version: record.version,
+    attention: evaluateAttention({ stage: record.stage, proposalValidUntil, lastContactAt, eventDate }, today),
+    allowedTransitions: [...allowedTransitions(record.stage)],
+  };
 };
 
 export interface OpportunityPage {
@@ -58,7 +90,7 @@ export class OpportunitiesService {
 
     if (query.onlyAttention) {
       const rows = await this.repository.findMany(filters, sorting);
-      const flagged = rows.map((row) => toOpportunityResponse(row, today)).filter((opp) => opp.attention.level !== 'none');
+      const flagged = rows.map((row) => toResponse(row, today)).filter((opp) => opp.attention.level !== 'none');
       const items = window ? flagged.slice(window.skip, window.skip + window.take) : flagged;
       return { items, total: flagged.length, paginated };
     }
@@ -67,14 +99,14 @@ export class OpportunitiesService {
       this.repository.findMany(filters, sorting, window),
       window ? this.repository.count(filters) : Promise.resolve(undefined),
     ]);
-    const items = rows.map((row) => toOpportunityResponse(row, today));
+    const items = rows.map((row) => toResponse(row, today));
     return { items, total: total ?? items.length, paginated };
   }
 
   async findOne(id: string): Promise<OpportunityResponseDto> {
     const record = await this.repository.findById(id);
     if (!record) throw new NotFoundException('Oportunidade não encontrada.');
-    return toOpportunityResponse(record, this.clock.today());
+    return toResponse(record, this.clock.today());
   }
 
   async create(dto: CreateOpportunityRequestDto): Promise<OpportunityResponseDto> {
@@ -97,7 +129,7 @@ export class OpportunitiesService {
       );
       return record;
     });
-    return toOpportunityResponse(created, today);
+    return toResponse(created, today);
   }
 
   async update(id: string, dto: UpdateOpportunityRequestDto): Promise<OpportunityResponseDto> {
@@ -148,7 +180,7 @@ export class OpportunitiesService {
         tx,
       );
     });
-    return toOpportunityResponse(updated, today);
+    return toResponse(updated, today);
   }
 
   async moveStage(id: string, dto: MoveStageRequestDto): Promise<OpportunityResponseDto> {
@@ -209,6 +241,6 @@ export class OpportunitiesService {
       );
       return record;
     });
-    return toOpportunityResponse(moved, today);
+    return toResponse(moved, today);
   }
 }
