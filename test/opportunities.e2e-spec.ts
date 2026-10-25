@@ -240,6 +240,12 @@ describe('POST /opportunities', () => {
     expect(response.body.errors.find((error: { field: string }) => error.field === 'extra').message).toBe('O campo extra não é permitido.');
   });
 
+  it('aceita a data do evento somente no formato AAAA-MM-DD', async () => {
+    const ana = await sellerByName(ctx.prisma, 'Ana');
+    const response = await ctx.http().post('/opportunities').send({ company: 'Data Compacta', sellerId: ana.id, eventDate: '20261130' }).expect(400);
+    expect(response.body.errors).toEqual([{ field: 'eventDate', message: 'Data do evento inválida.' }]);
+  });
+
   it('responde 422 para vendedor inexistente', async () => {
     const response = await ctx
       .http()
@@ -403,6 +409,19 @@ describe('PATCH /opportunities/:id/stage', () => {
     });
   });
 
+  it('valor estimado nulo ao mover para Apresentação de Orçamento responde 400 e não altera nada', async () => {
+    const before = await opportunityByNumber(ctx.prisma, 2001);
+    const response = await move(2001, { to: 'APRESENTACAO_ORCAMENTO', estimatedValue: null }, 400);
+    expect(response.body).toMatchObject({
+      message: 'Valor estimado inválido.',
+      errors: [{ field: 'estimatedValue', message: 'Valor estimado inválido.' }],
+    });
+
+    const after = await opportunityByNumber(ctx.prisma, 2001);
+    expect(after.version).toBe(before.version);
+    expect(after.estimatedValue?.toNumber()).toBe(before.estimatedValue?.toNumber());
+  });
+
   it('formato inválido do motivo responde 400', async () => {
     const response = await move(2003, { to: 'PERDIDA', lossReasonCode: 'preço' }, 400);
     expect(response.body.errors[0]).toEqual({ field: 'lossReasonCode', message: 'Motivo de perda inválido.' });
@@ -520,6 +539,13 @@ describe('PATCH /opportunities/:id', () => {
     const opp = await opportunityByNumber(ctx.prisma, 2001);
     await ctx.http().patch(`/opportunities/${opp.id}`).send({ expectedVersion: opp.version, proposalValidUntil: '2026-10-30' }).expect(422);
     await ctx.http().patch(`/opportunities/${opp.id}`).send({ expectedVersion: opp.version }).expect(422);
+  });
+
+  it('rejeita null na validade da proposta com 400, sem alterar a oportunidade', async () => {
+    const opp = await opportunityByNumber(ctx.prisma, 2003);
+    const response = await ctx.http().patch(`/opportunities/${opp.id}`).send({ expectedVersion: opp.version, proposalValidUntil: null }).expect(400);
+    expect(response.body.errors[0]).toEqual({ field: 'proposalValidUntil', message: 'Validade da proposta inválida.' });
+    expect((await opportunityByNumber(ctx.prisma, 2003)).version).toBe(opp.version);
   });
 
   it('responde 409 com versão desatualizada', async () => {

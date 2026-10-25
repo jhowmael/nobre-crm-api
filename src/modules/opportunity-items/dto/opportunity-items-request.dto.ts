@@ -1,10 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsInt, IsNotEmpty, IsString, Max, MaxLength, Min } from 'class-validator';
+import { IsInt, IsNotEmpty, IsString, Matches, Max, MaxLength, Min } from 'class-validator';
 
 export class CreateOpportunityItemRequestDto {
   @ApiProperty({ example: 'Agenda executiva' })
   @IsString({ message: 'Nome do brinde inválido.' })
   @IsNotEmpty({ message: 'Informe o nome do brinde.' })
+  @Matches(/\S/, { message: 'Informe o nome do brinde.' })
   @MaxLength(120, { message: 'O nome do brinde deve ter no máximo 120 caracteres.' })
   name: string;
 

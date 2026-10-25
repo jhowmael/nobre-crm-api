@@ -1,10 +1,11 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { IsDateOnly } from '../../../common/http/validation.js';
 
 export class CreateContactLogRequestDto {
   @ApiPropertyOptional({ example: '2026-10-15', format: 'date', description: 'Padrão: data de hoje.' })
   @IsOptional()
-  @IsDateString({ strict: true }, { message: 'Data do contato inválida.' })
+  @IsDateOnly('Data do contato inválida.')
   contactedAt?: string;
 
   @ApiPropertyOptional({ example: 'Cliente pediu ajuste na quantidade.' })

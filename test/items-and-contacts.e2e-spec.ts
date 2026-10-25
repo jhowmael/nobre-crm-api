@@ -57,8 +57,18 @@ describe('itens de brinde', () => {
     const opp = await opportunityByNumber(ctx.prisma, 2002);
     const other = await opportunityByNumber(ctx.prisma, 2003);
     const invalid = await ctx.http().post(`/opportunities/${opp.id}/items`).send({ name: '', quantity: 0 }).expect(400);
-    expect(invalid.body.errors.map((error: { field: string }) => error.field).sort()).toEqual(['name', 'quantity']);
+    expect(invalid.body.errors).toEqual([
+      { field: 'name', message: 'Informe o nome do brinde.' },
+      { field: 'quantity', message: 'Quantidade deve ser maior que zero.' },
+    ]);
     await ctx.http().delete(`/opportunities/${opp.id}/items/${other.items[0].id}`).expect(404);
+  });
+
+  it('rejeita nome de brinde só com espaços', async () => {
+    const opp = await opportunityByNumber(ctx.prisma, 2002);
+    const response = await ctx.http().post(`/opportunities/${opp.id}/items`).send({ name: '   ', quantity: 10 }).expect(400);
+    expect(response.body.errors).toEqual([{ field: 'name', message: 'Informe o nome do brinde.' }]);
+    expect((await opportunityByNumber(ctx.prisma, 2002)).items).toHaveLength(1);
   });
 
   it('remoções simultâneas não deixam a oportunidade sem itens', async () => {
@@ -105,5 +115,12 @@ describe('registro de contato', () => {
 
     const closed = await opportunityByNumber(ctx.prisma, 2006);
     await ctx.http().post(`/opportunities/${closed.id}/contacts`).send({}).expect(422);
+  });
+
+  it('aceita a data do contato somente no formato AAAA-MM-DD', async () => {
+    const opp = await opportunityByNumber(ctx.prisma, 2003);
+    const response = await ctx.http().post(`/opportunities/${opp.id}/contacts`).send({ contactedAt: '2027' }).expect(400);
+    expect(response.body.errors).toEqual([{ field: 'contactedAt', message: 'Data do contato inválida.' }]);
+    expect((await opportunityByNumber(ctx.prisma, 2003)).lastContactAt).toEqual(opp.lastContactAt);
   });
 });

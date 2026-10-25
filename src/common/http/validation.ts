@@ -1,4 +1,5 @@
-import { BadRequestException, ParseUUIDPipe, ValidationPipe, type ValidationError } from '@nestjs/common';
+import { applyDecorators, BadRequestException, ParseUUIDPipe, ValidationPipe, type ValidationError } from '@nestjs/common';
+import { IsDateString, Matches } from 'class-validator';
 import type { RuleViolationResponseDto } from './error-response.dto.js';
 
 const describe = (field: string, key: string, message: string) => {
@@ -21,10 +22,14 @@ export const createValidationPipe = () =>
 export const uuidPipe = () =>
   new ParseUUIDPipe({ exceptionFactory: () => new BadRequestException('Identificador inválido: informe um UUID.') });
 
+export const IsDateOnly = (message: string) =>
+  applyDecorators(IsDateString({ strict: true }, { message }), Matches(/^\d{4}-\d{2}-\d{2}$/, { message }));
+
 export function flattenValidationErrors(errors: ValidationError[], parent = ''): RuleViolationResponseDto[] {
   return errors.flatMap((error) => {
     const field = parent ? `${parent}.${error.property}` : error.property;
-    const own = Object.entries(error.constraints ?? {}).map(([key, message]) => ({ field, message: describe(field, key, message) }));
+    const firstDeclared = Object.entries(error.constraints ?? {}).at(-1);
+    const own = firstDeclared ? [{ field, message: describe(field, ...firstDeclared) }] : [];
     return [...own, ...flattenValidationErrors(error.children ?? [], field)];
   });
 }
