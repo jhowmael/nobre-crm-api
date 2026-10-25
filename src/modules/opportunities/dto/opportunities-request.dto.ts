@@ -22,11 +22,13 @@ import {
 } from 'class-validator';
 import { Stage } from '../../../generated/prisma/enums.js';
 
-export const OPPORTUNITY_SORT_FIELDS = ['number', 'company', 'eventDate', 'estimatedValue'] as const;
 export type OpportunitySortField = (typeof OPPORTUNITY_SORT_FIELDS)[number];
 
-export const SORT_DIRECTIONS = ['asc', 'desc'] as const;
 export type SortDirection = (typeof SORT_DIRECTIONS)[number];
+
+export const OPPORTUNITY_SORT_FIELDS = ['number', 'company', 'eventDate', 'estimatedValue'] as const;
+
+export const SORT_DIRECTIONS = ['asc', 'desc'] as const;
 
 export const MAX_PAGE_SIZE = 100;
 export const DEFAULT_PAGE_SIZE = 20;

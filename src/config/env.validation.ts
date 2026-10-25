@@ -3,6 +3,9 @@ import { IsInt, IsNotEmpty, IsOptional, IsString, Matches, Max, Min, validateSyn
 
 const toNumber = ({ value }: { value: unknown }) => (value === undefined || value === '' ? undefined : Number(value));
 
+export const DEFAULT_THROTTLE_LIMIT = 120;
+export const DEFAULT_THROTTLE_TTL_SECONDS = 60;
+
 class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
@@ -39,9 +42,6 @@ class EnvironmentVariables {
   @Min(1, { message: 'THROTTLE_TTL_SECONDS deve ser maior que zero' })
   THROTTLE_TTL_SECONDS?: number;
 }
-
-export const DEFAULT_THROTTLE_LIMIT = 120;
-export const DEFAULT_THROTTLE_TTL_SECONDS = 60;
 
 export function validateEnv(config: Record<string, unknown>) {
   const validated = plainToInstance(EnvironmentVariables, config, { enableImplicitConversion: false });

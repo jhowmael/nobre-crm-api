@@ -2,6 +2,14 @@ import { createTestApp, resetDatabase, type TestApp } from './support/app.js';
 
 let ctx: TestApp;
 
+const run = (sql: string) => ctx.prisma.$executeRawUnsafe(sql);
+
+const rejects = async (sql: string, pattern: RegExp) => {
+  await expect(run(sql)).rejects.toThrow(pattern);
+};
+
+const stageOf = async (number: number) => (await ctx.prisma.opportunity.findUniqueOrThrow({ where: { number } })).stage;
+
 beforeAll(async () => {
   ctx = await createTestApp();
 });
@@ -13,14 +21,6 @@ afterAll(async () => {
 beforeEach(async () => {
   await resetDatabase(ctx.prisma);
 });
-
-const run = (sql: string) => ctx.prisma.$executeRawUnsafe(sql);
-
-const rejects = async (sql: string, pattern: RegExp) => {
-  await expect(run(sql)).rejects.toThrow(pattern);
-};
-
-const stageOf = async (number: number) => (await ctx.prisma.opportunity.findUniqueOrThrow({ where: { number } })).stage;
 
 describe('regras de integridade no banco (SQL direto)', () => {
   it('o gatilho de transição bloqueia pulo de etapa, volta para Primeiro Contato e Fechamento fora de Forecast', async () => {

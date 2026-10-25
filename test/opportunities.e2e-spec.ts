@@ -2,14 +2,6 @@ import { codes, createTestApp, opportunityByNumber, resetDatabase, sellerByName,
 
 let ctx: TestApp;
 
-beforeAll(async () => {
-  ctx = await createTestApp();
-});
-
-afterAll(async () => {
-  await ctx.close();
-});
-
 const historyCount = (opportunityId: string) => ctx.prisma.stageHistory.count({ where: { opportunityId } });
 
 const move = async (number: number, body: Record<string, unknown>, status: number) => {
@@ -20,6 +12,14 @@ const move = async (number: number, body: Record<string, unknown>, status: numbe
     .send({ expectedVersion: opp.version, ...body })
     .expect(status);
 };
+
+beforeAll(async () => {
+  ctx = await createTestApp();
+});
+
+afterAll(async () => {
+  await ctx.close();
+});
 
 describe('GET /opportunities: listagem e filtros', () => {
   beforeAll(async () => {

@@ -5,13 +5,6 @@ import type { Stage } from '../../generated/prisma/enums.js';
 import type { OpportunitySortField, SortDirection } from './dto/opportunities-request.dto.js';
 
 export type Db = PrismaService | Prisma.TransactionClient;
-
-export const opportunityInclude = {
-  seller: { select: { id: true, name: true } },
-  lossReason: { select: { code: true, label: true } },
-  items: { orderBy: { id: 'asc' } },
-} satisfies Prisma.OpportunityInclude;
-
 export type OpportunityRecord = Prisma.OpportunityGetPayload<{ include: typeof opportunityInclude }>;
 
 export interface OpportunityFilters {
@@ -29,6 +22,12 @@ export interface PageWindow {
   skip: number;
   take: number;
 }
+
+export const opportunityInclude = {
+  seller: { select: { id: true, name: true } },
+  lossReason: { select: { code: true, label: true } },
+  items: { orderBy: { id: 'asc' } },
+} satisfies Prisma.OpportunityInclude;
 
 const CODE_PATTERN = /^opp-?(\d+)$/i;
 

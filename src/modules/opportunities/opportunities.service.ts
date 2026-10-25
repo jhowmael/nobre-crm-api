@@ -30,6 +30,12 @@ import {
   type PageWindow,
 } from './opportunities.repository.js';
 
+export interface OpportunityPage {
+  items: OpportunityResponseDto[];
+  total: number;
+  paginated: boolean;
+}
+
 const STALE_MESSAGE = 'A oportunidade foi alterada por outra pessoa. Atualize e tente novamente.';
 
 const unprocessable = (errors: RuleViolation[]) => new UnprocessableEntityException({ message: errors[0].message, errors });
@@ -63,12 +69,6 @@ const toResponse = (record: OpportunityRecord, today: string): OpportunityRespon
     allowedTransitions: [...allowedTransitions(record.stage)],
   };
 };
-
-export interface OpportunityPage {
-  items: OpportunityResponseDto[];
-  total: number;
-  paginated: boolean;
-}
 
 @Injectable()
 export class OpportunitiesService {

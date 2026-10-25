@@ -8,6 +8,14 @@ import type { ListFollowupTasksQueryDto } from './dto/followup-tasks-request.dto
 import type { FollowupTaskResponseDto, GenerateFollowupTasksResponseDto } from './dto/followup-tasks-response.dto.js';
 import { FollowupTasksRepository, type FollowupTaskRecord, type FollowupTaskRefresh } from './followup-tasks.repository.js';
 
+interface DesiredTask {
+  opportunityId: string;
+  sellerId: string;
+  reasonKey: string;
+  reason: string;
+  level: FollowupTaskLevel;
+}
+
 const toResponse = (task: FollowupTaskRecord): FollowupTaskResponseDto => ({
   id: task.id,
   opportunityId: task.opportunityId,
@@ -20,14 +28,6 @@ const toResponse = (task: FollowupTaskRecord): FollowupTaskResponseDto => ({
   dueDate: toDateOnly(task.dueDate)!,
   status: task.status,
 });
-
-interface DesiredTask {
-  opportunityId: string;
-  sellerId: string;
-  reasonKey: string;
-  reason: string;
-  level: FollowupTaskLevel;
-}
 
 @Injectable()
 export class FollowupTasksService {

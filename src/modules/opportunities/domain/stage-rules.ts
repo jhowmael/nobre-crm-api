@@ -1,5 +1,30 @@
 import { Stage } from '../../../generated/prisma/enums.js';
 
+export interface RuleViolation {
+  field: string;
+  message: string;
+}
+
+export interface LossReasonOption {
+  code: string;
+  label: string;
+  active: boolean;
+}
+
+export interface MoveSubject {
+  stage: Stage;
+  estimatedValue: number | null;
+  itemCount: number;
+}
+
+export interface MoveInput {
+  to: Stage;
+  lossReasonCode?: string;
+  lossNote?: string;
+  estimatedValue?: number;
+  itemCount?: number;
+}
+
 export const STAGE_ORDER: Stage[] = [
   Stage.PRIMEIRO_CONTATO,
   Stage.APRESENTACAO_ORCAMENTO,
@@ -53,6 +78,13 @@ export const hasProposal = (stage: Stage) =>
 
 export const allowedTransitions = (stage: Stage): Stage[] => TRANSITIONS[stage];
 
+export const NOT_INFORMED_LOSS_REASON = 'NOT_INFORMED';
+
+export const isLossReasonPending = (stage: Stage, lossReasonCode: string | null) =>
+  stage === Stage.PERDIDA && (lossReasonCode == null || lossReasonCode === NOT_INFORMED_LOSS_REASON);
+
+const toBrazilianDate = (iso: string) => iso.slice(0, 10).split('-').reverse().join('/');
+
 export function blockedReason(from: Stage, to: Stage): string | null {
   if (from === to || TRANSITIONS[from].includes(to)) return null;
 
@@ -77,22 +109,6 @@ export function blockedReason(from: Stage, to: Stage): string | null {
     : `Não é possível voltar de ${STAGE_LABELS[from]} para ${STAGE_LABELS[to]}.`;
 }
 
-export interface RuleViolation {
-  field: string;
-  message: string;
-}
-
-export interface LossReasonOption {
-  code: string;
-  label: string;
-  active: boolean;
-}
-
-export const NOT_INFORMED_LOSS_REASON = 'NOT_INFORMED';
-
-export const isLossReasonPending = (stage: Stage, lossReasonCode: string | null) =>
-  stage === Stage.PERDIDA && (lossReasonCode == null || lossReasonCode === NOT_INFORMED_LOSS_REASON);
-
 export function validateLossReason(code: string | undefined, catalog: LossReasonOption[]): RuleViolation[] {
   const value = code?.trim();
   if (!value) return [{ field: 'lossReasonCode', message: 'Informe o motivo da perda.' }];
@@ -100,20 +116,6 @@ export function validateLossReason(code: string | undefined, catalog: LossReason
   if (!found) return [{ field: 'lossReasonCode', message: 'Motivo de perda inválido.' }];
   if (!found.active) return [{ field: 'lossReasonCode', message: 'Este motivo de perda não pode ser selecionado.' }];
   return [];
-}
-
-export interface MoveSubject {
-  stage: Stage;
-  estimatedValue: number | null;
-  itemCount: number;
-}
-
-export interface MoveInput {
-  to: Stage;
-  lossReasonCode?: string;
-  lossNote?: string;
-  estimatedValue?: number;
-  itemCount?: number;
 }
 
 export function validateMove(subject: MoveSubject, input: MoveInput, lossReasons: LossReasonOption[] = []): RuleViolation[] {
@@ -142,8 +144,6 @@ export function validateMove(subject: MoveSubject, input: MoveInput, lossReasons
 
   return violations;
 }
-
-const toBrazilianDate = (iso: string) => iso.slice(0, 10).split('-').reverse().join('/');
 
 export function validateProposalValidity(proposalValidUntil: string | undefined, today: string): RuleViolation[] {
   if (proposalValidUntil === undefined || proposalValidUntil.slice(0, 10) >= today) return [];

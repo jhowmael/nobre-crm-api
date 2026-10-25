@@ -2,23 +2,7 @@ import { Stage } from '../../../generated/prisma/enums.js';
 import { daysBetween, plural } from '../../../common/utils/dates.js';
 import { hasProposal, isFinalStage, STAGE_LABELS } from './stage-rules.js';
 
-export const ATTENTION_LEVELS = ['none', 'medium', 'high'] as const;
-
-export const ATTENTION_SIGNAL_LEVELS = ['high', 'medium'] as const;
-
 export type AttentionLevel = (typeof ATTENTION_LEVELS)[number];
-
-export const ATTENTION_CODES = [
-  'PROPOSAL_EXPIRED',
-  'PROPOSAL_EXPIRES_TODAY',
-  'PROPOSAL_EXPIRING',
-  'PROPOSAL_MISSING',
-  'PROPOSAL_AFTER_EVENT',
-  'NO_CONTACT_REGISTERED',
-  'NO_CONTACT',
-  'EVENT_NEAR',
-  'EVENT_PAST',
-] as const;
 
 export type AttentionCode = (typeof ATTENTION_CODES)[number];
 
@@ -39,6 +23,22 @@ export interface AttentionSubject {
   lastContactAt: string | null;
   eventDate: string | null;
 }
+
+export const ATTENTION_LEVELS = ['none', 'medium', 'high'] as const;
+
+export const ATTENTION_SIGNAL_LEVELS = ['high', 'medium'] as const;
+
+export const ATTENTION_CODES = [
+  'PROPOSAL_EXPIRED',
+  'PROPOSAL_EXPIRES_TODAY',
+  'PROPOSAL_EXPIRING',
+  'PROPOSAL_MISSING',
+  'PROPOSAL_AFTER_EVENT',
+  'NO_CONTACT_REGISTERED',
+  'NO_CONTACT',
+  'EVENT_NEAR',
+  'EVENT_PAST',
+] as const;
 
 export const NO_CONTACT_MEDIUM_DAYS = 5;
 export const NO_CONTACT_HIGH_DAYS = 7;

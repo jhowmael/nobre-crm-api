@@ -1,6 +1,18 @@
 import type { PrismaClient } from '../src/generated/prisma/client.js';
 import type { Stage } from '../src/generated/prisma/enums.js';
 
+export interface SeedOpportunity {
+  number: number;
+  company: string;
+  seller: string;
+  item: { name: string; quantity: number };
+  estimatedValue: number;
+  lastContactAt: string;
+  proposalValidUntil: string | null;
+  eventDate: string;
+  stage: Stage;
+}
+
 export const MIGRATION_LOSS_REASON_CODE = 'NOT_INFORMED';
 export const MIGRATION_LOSS_REASON_LABEL = 'Não informado (migração)';
 export const MIGRATION_CONTACT_NOTE = 'Último contato registrado na migração.';
@@ -14,18 +26,6 @@ export const SEED_SELLERS = [
   { name: 'Bruno', email: 'bruno@nobrebrindes.example' },
   { name: 'Carla', email: 'carla@nobrebrindes.example' },
 ];
-
-export interface SeedOpportunity {
-  number: number;
-  company: string;
-  seller: string;
-  item: { name: string; quantity: number };
-  estimatedValue: number;
-  lastContactAt: string;
-  proposalValidUntil: string | null;
-  eventDate: string;
-  stage: Stage;
-}
 
 export const SEED_OPPORTUNITIES: SeedOpportunity[] = [
   { number: 2001, company: 'Tech Alpha Ltda', seller: 'Ana', item: { name: 'Caneca personalizada', quantity: 300 }, estimatedValue: 4500, lastContactAt: '2026-10-14', proposalValidUntil: null, eventDate: '2026-11-30', stage: 'PRIMEIRO_CONTATO' },

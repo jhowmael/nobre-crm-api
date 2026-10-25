@@ -1,6 +1,19 @@
 import { createTestApp, opportunityByNumber, resetDatabase, sellerByName, type TestApp } from './support/app.js';
 
+interface TaskBody {
+  id: string;
+  opportunityCode: string;
+  reasonKey: string;
+  level: string;
+  status: string;
+  dueDate: string;
+  reason: string;
+}
+
 let ctx: TestApp;
+
+const summary = (tasks: TaskBody[]) =>
+  tasks.map((task) => `${task.opportunityCode}:${task.reasonKey}:${task.level}`).sort();
 
 beforeAll(async () => {
   ctx = await createTestApp();
@@ -13,19 +26,6 @@ afterAll(async () => {
 beforeEach(async () => {
   await resetDatabase(ctx.prisma);
 });
-
-interface TaskBody {
-  id: string;
-  opportunityCode: string;
-  reasonKey: string;
-  level: string;
-  status: string;
-  dueDate: string;
-  reason: string;
-}
-
-const summary = (tasks: TaskBody[]) =>
-  tasks.map((task) => `${task.opportunityCode}:${task.reasonKey}:${task.level}`).sort();
 
 describe('tarefas de retorno', () => {
   it('gera as tarefas das três oportunidades do case (OPP-2002, 2003 e 2004) com o nível do alerta', async () => {

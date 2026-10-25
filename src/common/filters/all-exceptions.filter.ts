@@ -48,6 +48,12 @@ const isRecord = (value: unknown): value is Record<string, unknown> => typeof va
 const isViolation = (value: unknown): value is RuleViolationResponseDto =>
   isRecord(value) && typeof value['field'] === 'string' && typeof value['message'] === 'string';
 
+const firstString = (value: unknown): string | undefined => {
+  if (typeof value === 'string') return value;
+  if (Array.isArray(value)) return value.find((item): item is string => typeof item === 'string');
+  return undefined;
+};
+
 function driverCauses(exception: unknown): Record<string, unknown>[] {
   if (!isRecord(exception)) return [];
   const causes: unknown[] = [exception['cause']];
@@ -68,12 +74,6 @@ function isDatabaseUnavailable(exception: unknown): boolean {
   if (exception instanceof Prisma.PrismaClientInitializationError) return true;
   return driverCauses(exception).some((cause) => typeof cause['kind'] === 'string' && UNAVAILABLE_KINDS.has(cause['kind']));
 }
-
-const firstString = (value: unknown): string | undefined => {
-  if (typeof value === 'string') return value;
-  if (Array.isArray(value)) return value.find((item): item is string => typeof item === 'string');
-  return undefined;
-};
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {

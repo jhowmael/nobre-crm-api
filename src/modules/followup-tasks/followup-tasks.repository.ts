@@ -3,8 +3,6 @@ import { Prisma } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../database/prisma.service.js';
 import type { FollowupTaskLevel, FollowupTaskStatus } from '../../generated/prisma/enums.js';
 
-const taskInclude = { opportunity: { select: { number: true, company: true } } } satisfies Prisma.FollowupTaskInclude;
-
 export type FollowupTaskRecord = Prisma.FollowupTaskGetPayload<{ include: typeof taskInclude }>;
 
 export interface FollowupTaskRefresh {
@@ -12,6 +10,8 @@ export interface FollowupTaskRefresh {
   level: FollowupTaskLevel;
   reason: string;
 }
+
+const taskInclude = { opportunity: { select: { number: true, company: true } } } satisfies Prisma.FollowupTaskInclude;
 
 @Injectable()
 export class FollowupTasksRepository {

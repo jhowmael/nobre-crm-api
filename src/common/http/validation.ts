@@ -6,14 +6,6 @@ const describe = (field: string, key: string, message: string) => {
   return message;
 };
 
-export function flattenValidationErrors(errors: ValidationError[], parent = ''): RuleViolationResponseDto[] {
-  return errors.flatMap((error) => {
-    const field = parent ? `${parent}.${error.property}` : error.property;
-    const own = Object.entries(error.constraints ?? {}).map(([key, message]) => ({ field, message: describe(field, key, message) }));
-    return [...own, ...flattenValidationErrors(error.children ?? [], field)];
-  });
-}
-
 export const createValidationPipe = () =>
   new ValidationPipe({
     whitelist: true,
@@ -28,3 +20,11 @@ export const createValidationPipe = () =>
 
 export const uuidPipe = () =>
   new ParseUUIDPipe({ exceptionFactory: () => new BadRequestException('Identificador inválido: informe um UUID.') });
+
+export function flattenValidationErrors(errors: ValidationError[], parent = ''): RuleViolationResponseDto[] {
+  return errors.flatMap((error) => {
+    const field = parent ? `${parent}.${error.property}` : error.property;
+    const own = Object.entries(error.constraints ?? {}).map(([key, message]) => ({ field, message: describe(field, key, message) }));
+    return [...own, ...flattenValidationErrors(error.children ?? [], field)];
+  });
+}
