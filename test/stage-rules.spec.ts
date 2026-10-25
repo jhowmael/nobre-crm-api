@@ -1,4 +1,4 @@
-import { Stage } from '../../../generated/prisma/enums.js';
+import { Stage } from '../src/generated/prisma/enums.js';
 import {
   ALL_STAGES,
   allowedTransitions,
@@ -13,7 +13,7 @@ import {
   validateMove,
   validateProposalValidity,
   type LossReasonOption,
-} from './stage-rules.js';
+} from '../src/modules/opportunities/domain/stage-rules.js';
 
 const CATALOG: LossReasonOption[] = [
   { code: 'PRICE', label: 'Preço acima do orçamento do cliente', active: true },

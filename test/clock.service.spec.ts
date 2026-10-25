@@ -1,5 +1,5 @@
 import { ConfigService } from '@nestjs/config';
-import { ClockService } from './clock.service.js';
+import { ClockService } from '../src/common/clock/clock.service.js';
 
 const clockWith = (APP_TODAY?: string) => new ClockService(new ConfigService(APP_TODAY === undefined ? {} : { APP_TODAY }));
 

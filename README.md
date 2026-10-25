@@ -69,7 +69,7 @@ src/
     followup-tasks/    automação das tarefas de retorno
     catalogs/          etapas, transições e motivos de perda para o frontend
     sellers/           vendedores
-test/                  testes de integração
+test/                  testes unitários e de integração
 openapi.json           contrato da API
 ```
 

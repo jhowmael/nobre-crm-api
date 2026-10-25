@@ -1,5 +1,5 @@
-import type { Stage } from '../../../generated/prisma/enums.js';
-import { evaluateAttention, type AttentionSubject } from './attention.js';
+import type { Stage } from '../src/generated/prisma/enums.js';
+import { evaluateAttention, type AttentionSubject } from '../src/modules/opportunities/domain/attention.js';
 
 const TODAY = '2026-10-15';
 
