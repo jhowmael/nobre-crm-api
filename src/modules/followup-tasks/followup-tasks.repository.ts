@@ -24,10 +24,10 @@ export class FollowupTasksRepository {
     });
   }
 
-  findDoneOn(dueDate: Date) {
+  findDoneDueOnOrResolvedSince(dueDate: Date, resolvedSince: Date) {
     return this.prisma.followupTask.findMany({
-      where: { status: 'DONE', dueDate },
-      select: { opportunityId: true, reasonKey: true },
+      where: { status: 'DONE', OR: [{ dueDate }, { resolvedAt: { gte: resolvedSince } }] },
+      select: { opportunityId: true, reasonKey: true, dueDate: true, resolvedAt: true },
     });
   }
 

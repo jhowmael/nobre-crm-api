@@ -1,3 +1,4 @@
+import { toBusinessDate } from '../src/common/clock/clock.service.js';
 import { codes, createTestApp, opportunityByNumber, resetDatabase, sellerByName, type TestApp } from './support/app.js';
 
 let ctx: TestApp;
@@ -224,8 +225,9 @@ describe('POST /opportunities', () => {
 
     const history = await ctx.http().get(`/opportunities/${response.body.id}/history`).expect(200);
     expect(history.body).toEqual([
-      { id: expect.any(String), from: null, to: 'PRIMEIRO_CONTATO', note: 'Oportunidade criada', at: expect.stringMatching(/^2026-10-15T/) },
+      { id: expect.any(String), from: null, to: 'PRIMEIRO_CONTATO', note: 'Oportunidade criada', at: expect.any(String) },
     ]);
+    expect(toBusinessDate(new Date(history.body[0].at))).toBe('2026-10-15');
 
     const found = await ctx.http().get(`/opportunities/${response.body.id}`).expect(200);
     expect(found.body.code).toBe('OPP-2008');
@@ -273,7 +275,7 @@ describe('PATCH /opportunities/:id/stage', () => {
     const history = await ctx.http().get(`/opportunities/${before.id}/history`).expect(200);
     expect(history.body).toHaveLength(2);
     expect(history.body[0]).toMatchObject({ from: 'PRIMEIRO_CONTATO', to: 'APRESENTACAO_ORCAMENTO', note: null });
-    expect(history.body[0].at).toMatch(/^2026-10-15T/);
+    expect(toBusinessDate(new Date(history.body[0].at))).toBe('2026-10-15');
   });
 
   it('move para Perdida com motivo do catálogo e observação, gravando o motivo no histórico', async () => {

@@ -105,6 +105,18 @@ describe('tarefas de retorno', () => {
     await ctx.http().patch('/followup-tasks/9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d/done').expect(404);
   });
 
+  it('não recria hoje a tarefa atrasada que foi concluída hoje', async () => {
+    await ctx.http().post('/followup-tasks/generate').expect(200);
+    const opp = await opportunityByNumber(ctx.prisma, 2002);
+    const task = await ctx.prisma.followupTask.findFirstOrThrow({ where: { opportunityId: opp.id, reasonKey: 'NO_CONTACT', status: 'OPEN' } });
+    await ctx.prisma.followupTask.update({ where: { id: task.id }, data: { dueDate: new Date('2026-10-14T00:00:00.000Z') } });
+
+    await ctx.http().patch(`/followup-tasks/${task.id}/done`).expect(200);
+    const regenerated = await ctx.http().post('/followup-tasks/generate').expect(200);
+    expect(regenerated.body).toEqual({ created: 0, dismissed: 0 });
+    expect(await ctx.prisma.followupTask.count({ where: { opportunityId: opp.id, reasonKey: 'NO_CONTACT' } })).toBe(1);
+  });
+
   it('atualiza o nível de uma tarefa aberta quando o alerta se agrava', async () => {
     const opp = await opportunityByNumber(ctx.prisma, 2003);
     await ctx.prisma.opportunity.update({ where: { id: opp.id }, data: { lastContactAt: new Date('2026-10-10T00:00:00.000Z') } });

@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { daysBetween } from '../utils/dates.js';
 
 export const BUSINESS_TIME_ZONE = 'America/Sao_Paulo';
 
@@ -9,6 +10,8 @@ const businessDate = new Intl.DateTimeFormat('en-CA', {
   month: '2-digit',
   day: '2-digit',
 });
+
+export const toBusinessDate = (value: Date) => businessDate.format(value);
 
 @Injectable()
 export class ClockService {
@@ -26,6 +29,6 @@ export class ClockService {
     const fixed = this.fixedDate();
     if (!fixed) return new Date();
     const real = new Date();
-    return new Date(`${fixed}T${real.toISOString().slice(11)}`);
+    return new Date(real.getTime() + daysBetween(toBusinessDate(real), fixed) * 86_400_000);
   }
 }

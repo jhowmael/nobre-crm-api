@@ -1,5 +1,5 @@
 import { Injectable, Logger, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
-import { ClockService } from '../../common/clock/clock.service.js';
+import { ClockService, toBusinessDate } from '../../common/clock/clock.service.js';
 import { fromDateOnly, toDateOnly } from '../../common/utils/dates.js';
 import type { FollowupTaskLevel } from '../../generated/prisma/enums.js';
 import { evaluateAttention, type AttentionCode } from '../opportunities/domain/attention.js';
@@ -15,6 +15,8 @@ interface DesiredTask {
   reason: string;
   level: FollowupTaskLevel;
 }
+
+const DONE_LOOKBACK_MS = 48 * 3_600_000;
 
 const toResponse = (task: FollowupTaskRecord): FollowupTaskResponseDto => ({
   id: task.id,
@@ -86,7 +88,13 @@ export class FollowupTasksService {
     const openByKey = new Map(open.map((task) => [`${task.opportunityId}:${task.reasonKey}`, task]));
 
     const dueDate = fromDateOnly(today);
-    const doneToday = new Set((await this.repository.findDoneOn(dueDate)).map((task) => `${task.opportunityId}:${task.reasonKey}`));
+    const resolvedSince = new Date(this.clock.now().getTime() - DONE_LOOKBACK_MS);
+    const recentlyDone = await this.repository.findDoneDueOnOrResolvedSince(dueDate, resolvedSince);
+    const doneToday = new Set(
+      recentlyDone
+        .filter((task) => toDateOnly(task.dueDate) === today || (task.resolvedAt !== null && toBusinessDate(task.resolvedAt) === today))
+        .map((task) => `${task.opportunityId}:${task.reasonKey}`),
+    );
 
     const created = await this.repository.createMany(
       [...desired.entries()]
