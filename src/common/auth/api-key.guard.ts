@@ -11,7 +11,7 @@ export const API_KEY_SECURITY = 'api-key';
 
 const digest = (value: string) => createHash('sha256').update(value, 'utf8').digest();
 
-export function safeEqual(received: string, expected: string): boolean {
+function safeEqual(received: string, expected: string): boolean {
   return timingSafeEqual(digest(received), digest(expected));
 }
 

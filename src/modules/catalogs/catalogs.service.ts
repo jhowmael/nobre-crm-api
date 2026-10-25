@@ -21,7 +21,7 @@ import type {
 
 const byStage = <T>(build: (stage: Stage) => T) => Object.fromEntries(ALL_STAGES.map((stage) => [stage, build(stage)])) as Record<Stage, T>;
 
-export const buildStageCatalog = (): StageCatalogItemResponseDto[] =>
+const buildStageCatalog = (): StageCatalogItemResponseDto[] =>
   ALL_STAGES.map((stage, index) => ({
     id: stage,
     label: STAGE_LABELS[stage],
@@ -31,9 +31,9 @@ export const buildStageCatalog = (): StageCatalogItemResponseDto[] =>
     requirement: STAGE_REQUIREMENTS[stage],
   }));
 
-export const buildTransitions = (): StageTransitionsResponseDto => byStage((stage) => [...TRANSITIONS[stage]]);
+const buildTransitions = (): StageTransitionsResponseDto => byStage((stage) => [...TRANSITIONS[stage]]);
 
-export const buildBlockedReasons = (): BlockedReasonsResponseDto =>
+const buildBlockedReasons = (): BlockedReasonsResponseDto =>
   byStage((from) => byStage<string | null>((to) => blockedReason(from, to)) as BlockedReasonsByTargetResponseDto);
 
 @Injectable()

@@ -3,8 +3,6 @@ import { Prisma } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../database/prisma.service.js';
 import type { FollowupTaskLevel, FollowupTaskStatus } from '../../generated/prisma/enums.js';
 
-const taskInclude = { opportunity: { select: { number: true, company: true } } } satisfies Prisma.FollowupTaskInclude;
-
 export type FollowupTaskRecord = Prisma.FollowupTaskGetPayload<{ include: typeof taskInclude }>;
 
 export interface FollowupTaskRefresh {
@@ -12,6 +10,8 @@ export interface FollowupTaskRefresh {
   level: FollowupTaskLevel;
   reason: string;
 }
+
+const taskInclude = { opportunity: { select: { number: true, company: true } } } satisfies Prisma.FollowupTaskInclude;
 
 @Injectable()
 export class FollowupTasksRepository {
@@ -24,10 +24,10 @@ export class FollowupTasksRepository {
     });
   }
 
-  findDoneOn(dueDate: Date) {
+  findDoneDueOnOrResolvedSince(dueDate: Date, resolvedSince: Date) {
     return this.prisma.followupTask.findMany({
-      where: { status: 'DONE', dueDate },
-      select: { opportunityId: true, reasonKey: true },
+      where: { status: 'DONE', OR: [{ dueDate }, { resolvedAt: { gte: resolvedSince } }] },
+      select: { opportunityId: true, reasonKey: true, dueDate: true, resolvedAt: true },
     });
   }
 

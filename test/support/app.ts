@@ -16,6 +16,10 @@ export interface TestAppOptions {
   override?: (builder: TestingModuleBuilder, tokens: { PrismaService: typeof PrismaService }) => TestingModuleBuilder;
 }
 
+export const resetDatabase = (prisma: PrismaService) => seedDatabase(prisma);
+
+export const codes = (body: { code: string }[]) => body.map((item) => item.code);
+
 export async function createTestApp(options: TestAppOptions = {}): Promise<TestApp> {
   Object.assign(process.env, options.env ?? {});
 
@@ -42,8 +46,6 @@ export async function createTestApp(options: TestAppOptions = {}): Promise<TestA
   };
 }
 
-export const resetDatabase = (prisma: PrismaService) => seedDatabase(prisma);
-
 export async function opportunityByNumber(prisma: PrismaService, number: number) {
   return prisma.opportunity.findUniqueOrThrow({ where: { number }, include: { items: true } });
 }
@@ -51,5 +53,3 @@ export async function opportunityByNumber(prisma: PrismaService, number: number)
 export async function sellerByName(prisma: PrismaService, name: string) {
   return prisma.seller.findUniqueOrThrow({ where: { name } });
 }
-
-export const codes = (body: { code: string }[]) => body.map((item) => item.code);

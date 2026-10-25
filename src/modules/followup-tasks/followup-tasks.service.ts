@@ -1,25 +1,13 @@
 import { Injectable, Logger, NotFoundException, UnprocessableEntityException } from '@nestjs/common';
-import { ClockService } from '../../common/clock/clock.service.js';
+import { ClockService, toBusinessDate } from '../../common/clock/clock.service.js';
 import { fromDateOnly, toDateOnly } from '../../common/utils/dates.js';
 import type { FollowupTaskLevel } from '../../generated/prisma/enums.js';
 import { evaluateAttention, type AttentionCode } from '../opportunities/domain/attention.js';
+import { opportunityCode } from '../opportunities/domain/stage-rules.js';
 import { OpportunitiesRepository } from '../opportunities/opportunities.repository.js';
 import type { ListFollowupTasksQueryDto } from './dto/followup-tasks-request.dto.js';
 import type { FollowupTaskResponseDto, GenerateFollowupTasksResponseDto } from './dto/followup-tasks-response.dto.js';
 import { FollowupTasksRepository, type FollowupTaskRecord, type FollowupTaskRefresh } from './followup-tasks.repository.js';
-
-const toResponse = (task: FollowupTaskRecord): FollowupTaskResponseDto => ({
-  id: task.id,
-  opportunityId: task.opportunityId,
-  opportunityCode: `OPP-${task.opportunity.number}`,
-  company: task.opportunity.company,
-  sellerId: task.sellerId,
-  reasonKey: task.reasonKey as AttentionCode,
-  reason: task.reason,
-  level: task.level,
-  dueDate: toDateOnly(task.dueDate)!,
-  status: task.status,
-});
 
 interface DesiredTask {
   opportunityId: string;
@@ -28,6 +16,21 @@ interface DesiredTask {
   reason: string;
   level: FollowupTaskLevel;
 }
+
+const DONE_LOOKBACK_MS = 48 * 3_600_000;
+
+const toResponse = (task: FollowupTaskRecord): FollowupTaskResponseDto => ({
+  id: task.id,
+  opportunityId: task.opportunityId,
+  opportunityCode: opportunityCode(task.opportunity.number),
+  company: task.opportunity.company,
+  sellerId: task.sellerId,
+  reasonKey: task.reasonKey as AttentionCode,
+  reason: task.reason,
+  level: task.level,
+  dueDate: toDateOnly(task.dueDate)!,
+  status: task.status,
+});
 
 @Injectable()
 export class FollowupTasksService {
@@ -86,7 +89,13 @@ export class FollowupTasksService {
     const openByKey = new Map(open.map((task) => [`${task.opportunityId}:${task.reasonKey}`, task]));
 
     const dueDate = fromDateOnly(today);
-    const doneToday = new Set((await this.repository.findDoneOn(dueDate)).map((task) => `${task.opportunityId}:${task.reasonKey}`));
+    const resolvedSince = new Date(this.clock.now().getTime() - DONE_LOOKBACK_MS);
+    const recentlyDone = await this.repository.findDoneDueOnOrResolvedSince(dueDate, resolvedSince);
+    const doneToday = new Set(
+      recentlyDone
+        .filter((task) => toDateOnly(task.dueDate) === today || (task.resolvedAt !== null && toBusinessDate(task.resolvedAt) === today))
+        .map((task) => `${task.opportunityId}:${task.reasonKey}`),
+    );
 
     const created = await this.repository.createMany(
       [...desired.entries()]

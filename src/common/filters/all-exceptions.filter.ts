@@ -25,20 +25,6 @@ const GENERIC_MESSAGES: Partial<Record<number, string>> = {
   503: 'Serviço indisponível.',
 };
 
-const ENGLISH_DEFAULTS = new Set([
-  'Bad Request',
-  'Unauthorized',
-  'Forbidden',
-  'Not Found',
-  'Method Not Allowed',
-  'Conflict',
-  'Payload Too Large',
-  'Unprocessable Entity',
-  'Too Many Requests',
-  'Internal Server Error',
-  'Service Unavailable',
-]);
-
 const INVALID_JSON_MESSAGE = 'O corpo da requisição não é um JSON válido.';
 
 const UNAVAILABLE_KINDS = new Set(['DatabaseNotReachable', 'ConnectionClosed', 'SocketTimeout', 'TooManyConnections']);
@@ -47,6 +33,12 @@ const isRecord = (value: unknown): value is Record<string, unknown> => typeof va
 
 const isViolation = (value: unknown): value is RuleViolationResponseDto =>
   isRecord(value) && typeof value['field'] === 'string' && typeof value['message'] === 'string';
+
+const firstString = (value: unknown): string | undefined => {
+  if (typeof value === 'string') return value;
+  if (Array.isArray(value)) return value.find((item): item is string => typeof item === 'string');
+  return undefined;
+};
 
 function driverCauses(exception: unknown): Record<string, unknown>[] {
   if (!isRecord(exception)) return [];
@@ -68,12 +60,6 @@ function isDatabaseUnavailable(exception: unknown): boolean {
   if (exception instanceof Prisma.PrismaClientInitializationError) return true;
   return driverCauses(exception).some((cause) => typeof cause['kind'] === 'string' && UNAVAILABLE_KINDS.has(cause['kind']));
 }
-
-const firstString = (value: unknown): string | undefined => {
-  if (typeof value === 'string') return value;
-  if (Array.isArray(value)) return value.find((item): item is string => typeof item === 'string');
-  return undefined;
-};
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -136,7 +122,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     if (status === HttpStatus.TOO_MANY_REQUESTS) return GENERIC_MESSAGES[429];
     if (status === HttpStatus.BAD_REQUEST && /\bJSON\b/.test(message)) return INVALID_JSON_MESSAGE;
     if (status === HttpStatus.BAD_REQUEST && message === 'URI malformed') return 'Endereço com codificação inválida.';
-    if (ENGLISH_DEFAULTS.has(message)) return GENERIC_MESSAGES[status];
+    if (message === STATUS_CODES[status]) return GENERIC_MESSAGES[status];
     return message;
   }
 
@@ -165,11 +151,11 @@ export class AllExceptionsFilter implements ExceptionFilter {
       case 'P2025':
         return { status: HttpStatus.NOT_FOUND, message: 'Registro não encontrado.' };
       case 'P2002':
-        return { status: HttpStatus.CONFLICT, message: 'Já existe um registro com esses dados.' };
+        return this.fromPostgres('23505', exception);
       case 'P2003':
-        return { status: HttpStatus.UNPROCESSABLE_ENTITY, message: 'Referência inválida: o registro relacionado não existe.' };
+        return this.fromPostgres('23503', exception);
       case 'P2034':
-        return { status: HttpStatus.CONFLICT, message: 'A operação conflitou com outra alteração simultânea. Tente novamente.' };
+        return this.fromPostgres('40001', exception);
       default:
         return { status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Erro interno ao acessar o banco de dados.' };
     }

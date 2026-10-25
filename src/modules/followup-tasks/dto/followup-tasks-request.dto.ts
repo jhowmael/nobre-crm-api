@@ -1,5 +1,6 @@
 import { ApiPropertyOptional } from '@nestjs/swagger';
-import { IsDateString, IsEnum, IsOptional, IsUUID } from 'class-validator';
+import { IsEnum, IsOptional, IsUUID } from 'class-validator';
+import { IsDateOnly } from '../../../common/http/validation.js';
 import { FollowupTaskStatus } from '../../../generated/prisma/enums.js';
 
 export class ListFollowupTasksQueryDto {
@@ -15,6 +16,6 @@ export class ListFollowupTasksQueryDto {
 
   @ApiPropertyOptional({ example: '2026-10-15', format: 'date', description: 'Tarefas com vencimento até esta data. Padrão: hoje.' })
   @IsOptional()
-  @IsDateString({ strict: true }, { message: 'Data limite inválida.' })
+  @IsDateOnly('Data limite inválida.')
   dueUntil?: string;
 }

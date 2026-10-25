@@ -29,7 +29,6 @@ import { StageHistoriesModule } from './modules/stage-histories/stage-histories.
             limit: config.get<number>('THROTTLE_LIMIT') ?? DEFAULT_THROTTLE_LIMIT,
           },
         ],
-        errorMessage: 'Muitas requisições. Aguarde um instante e tente novamente.',
       }),
     }),
     ScheduleModule.forRoot(),

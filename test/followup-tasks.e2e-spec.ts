@@ -1,6 +1,19 @@
 import { createTestApp, opportunityByNumber, resetDatabase, sellerByName, type TestApp } from './support/app.js';
 
+interface TaskBody {
+  id: string;
+  opportunityCode: string;
+  reasonKey: string;
+  level: string;
+  status: string;
+  dueDate: string;
+  reason: string;
+}
+
 let ctx: TestApp;
+
+const summary = (tasks: TaskBody[]) =>
+  tasks.map((task) => `${task.opportunityCode}:${task.reasonKey}:${task.level}`).sort();
 
 beforeAll(async () => {
   ctx = await createTestApp();
@@ -13,19 +26,6 @@ afterAll(async () => {
 beforeEach(async () => {
   await resetDatabase(ctx.prisma);
 });
-
-interface TaskBody {
-  id: string;
-  opportunityCode: string;
-  reasonKey: string;
-  level: string;
-  status: string;
-  dueDate: string;
-  reason: string;
-}
-
-const summary = (tasks: TaskBody[]) =>
-  tasks.map((task) => `${task.opportunityCode}:${task.reasonKey}:${task.level}`).sort();
 
 describe('tarefas de retorno', () => {
   it('gera as tarefas das três oportunidades do case (OPP-2002, 2003 e 2004) com o nível do alerta', async () => {
@@ -103,6 +103,18 @@ describe('tarefas de retorno', () => {
     expect(regenerated.body).toEqual({ created: 0, dismissed: 0 });
 
     await ctx.http().patch('/followup-tasks/9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d/done').expect(404);
+  });
+
+  it('não recria hoje a tarefa atrasada que foi concluída hoje', async () => {
+    await ctx.http().post('/followup-tasks/generate').expect(200);
+    const opp = await opportunityByNumber(ctx.prisma, 2002);
+    const task = await ctx.prisma.followupTask.findFirstOrThrow({ where: { opportunityId: opp.id, reasonKey: 'NO_CONTACT', status: 'OPEN' } });
+    await ctx.prisma.followupTask.update({ where: { id: task.id }, data: { dueDate: new Date('2026-10-14T00:00:00.000Z') } });
+
+    await ctx.http().patch(`/followup-tasks/${task.id}/done`).expect(200);
+    const regenerated = await ctx.http().post('/followup-tasks/generate').expect(200);
+    expect(regenerated.body).toEqual({ created: 0, dismissed: 0 });
+    expect(await ctx.prisma.followupTask.count({ where: { opportunityId: opp.id, reasonKey: 'NO_CONTACT' } })).toBe(1);
   });
 
   it('atualiza o nível de uma tarefa aberta quando o alerta se agrava', async () => {

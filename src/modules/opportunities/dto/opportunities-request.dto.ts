@@ -5,7 +5,6 @@ import {
   ArrayMinSize,
   IsArray,
   IsBoolean,
-  IsDateString,
   IsEnum,
   IsIn,
   IsInt,
@@ -18,15 +17,19 @@ import {
   Max,
   MaxLength,
   Min,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
+import { IsDateOnly } from '../../../common/http/validation.js';
 import { Stage } from '../../../generated/prisma/enums.js';
 
-export const OPPORTUNITY_SORT_FIELDS = ['number', 'company', 'eventDate', 'estimatedValue'] as const;
 export type OpportunitySortField = (typeof OPPORTUNITY_SORT_FIELDS)[number];
 
-export const SORT_DIRECTIONS = ['asc', 'desc'] as const;
 export type SortDirection = (typeof SORT_DIRECTIONS)[number];
+
+export const OPPORTUNITY_SORT_FIELDS = ['number', 'company', 'eventDate', 'estimatedValue'] as const;
+
+export const SORT_DIRECTIONS = ['asc', 'desc'] as const;
 
 export const MAX_PAGE_SIZE = 100;
 export const DEFAULT_PAGE_SIZE = 20;
@@ -39,6 +42,7 @@ export class GiftItemRequestDto {
   @ApiProperty({ example: 'Caneca personalizada' })
   @IsString({ message: 'Nome do brinde inválido.' })
   @IsNotEmpty({ message: 'Informe o nome do brinde.' })
+  @Matches(/\S/, { message: 'Informe o nome do brinde.' })
   @MaxLength(120, { message: 'O nome do brinde deve ter no máximo 120 caracteres.' })
   name: string;
 
@@ -127,37 +131,37 @@ export class CreateOpportunityRequestDto {
 
   @ApiPropertyOptional({ example: '2026-11-30', format: 'date' })
   @IsOptional()
-  @IsDateString({ strict: true }, { message: 'Data do evento inválida.' })
+  @IsDateOnly('Data do evento inválida.')
   eventDate?: string;
 }
 
 export class UpdateOpportunityRequestDto {
   @ApiPropertyOptional({ example: 4500 })
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsNumber({ maxDecimalPlaces: 2 }, { message: 'Valor estimado inválido.' })
   @Min(0.01, { message: 'Valor estimado deve ser maior que zero.' })
   @Max(9_999_999_999.99, { message: 'Valor estimado acima do limite permitido.' })
   estimatedValue?: number;
 
   @ApiPropertyOptional({ example: '2026-10-22', format: 'date' })
-  @IsOptional()
-  @IsDateString({ strict: true }, { message: 'Validade da proposta inválida.' })
+  @ValidateIf((_, value) => value !== undefined)
+  @IsDateOnly('Validade da proposta inválida.')
   proposalValidUntil?: string;
 
   @ApiPropertyOptional({ example: '2026-11-30', format: 'date' })
-  @IsOptional()
-  @IsDateString({ strict: true }, { message: 'Data do evento inválida.' })
+  @ValidateIf((_, value) => value !== undefined)
+  @IsDateOnly('Data do evento inválida.')
   eventDate?: string;
 
   @ApiPropertyOptional({ example: 'COMPETITOR', description: 'Somente para oportunidades Perdidas com motivo pendente. Código ativo de GET /catalogs.' })
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsString({ message: 'Motivo de perda inválido.' })
   @Matches(LOSS_REASON_CODE, { message: 'Motivo de perda inválido.' })
   @MaxLength(40, { message: 'Motivo de perda inválido.' })
   lossReasonCode?: string;
 
   @ApiPropertyOptional({ example: 'Cliente fechou com o fornecedor da matriz.', description: 'Detalhe opcional do motivo da perda.' })
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsString({ message: 'Observação da perda inválida.' })
   @MaxLength(300, { message: 'A observação da perda deve ter no máximo 300 caracteres.' })
   lossNote?: string;
@@ -174,27 +178,27 @@ export class MoveStageRequestDto {
   to: Stage;
 
   @ApiPropertyOptional({ example: 'PRICE', description: 'Obrigatório ao mover para Perdida: código ativo de GET /catalogs.' })
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsString({ message: 'Motivo de perda inválido.' })
   @Matches(LOSS_REASON_CODE, { message: 'Motivo de perda inválido.' })
   @MaxLength(40, { message: 'Motivo de perda inválido.' })
   lossReasonCode?: string;
 
   @ApiPropertyOptional({ example: 'Concorrente ofereceu frete grátis.', description: 'Detalhe opcional do motivo da perda.' })
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsString({ message: 'Observação da perda inválida.' })
   @MaxLength(300, { message: 'A observação da perda deve ter no máximo 300 caracteres.' })
   lossNote?: string;
 
   @ApiPropertyOptional({ description: 'Exigido em Apresentação de Orçamento, se ainda não informado.' })
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsNumber({ maxDecimalPlaces: 2 }, { message: 'Valor estimado inválido.' })
   @Min(0.01, { message: 'Valor estimado deve ser maior que zero.' })
   @Max(9_999_999_999.99, { message: 'Valor estimado acima do limite permitido.' })
   estimatedValue?: number;
 
   @ApiPropertyOptional({ type: [GiftItemRequestDto], description: 'Substitui os itens atuais.' })
-  @IsOptional()
+  @ValidateIf((_, value) => value !== undefined)
   @IsArray({ message: 'Itens inválidos.' })
   @ArrayMinSize(1, { message: 'Informe ao menos um item de brinde.' })
   @ArrayMaxSize(50, { message: 'Informe no máximo 50 itens.' })
@@ -203,8 +207,8 @@ export class MoveStageRequestDto {
   items?: GiftItemRequestDto[];
 
   @ApiPropertyOptional({ example: '2026-10-22', format: 'date' })
-  @IsOptional()
-  @IsDateString({ strict: true }, { message: 'Validade da proposta inválida.' })
+  @ValidateIf((_, value) => value !== undefined)
+  @IsDateOnly('Validade da proposta inválida.')
   proposalValidUntil?: string;
 
   @ApiProperty({ description: 'Versão lida pelo cliente, para detectar movimentação concorrente.' })

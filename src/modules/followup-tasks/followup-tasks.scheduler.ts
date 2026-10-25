@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
+import { BUSINESS_TIME_ZONE } from '../../common/clock/clock.service.js';
 import { FollowupTasksService } from './followup-tasks.service.js';
 
 @Injectable()
@@ -8,7 +9,7 @@ export class FollowupTasksScheduler {
 
   constructor(private readonly service: FollowupTasksService) {}
 
-  @Cron('0 7 * * 1-5', { name: 'followup-tasks-generation', timeZone: 'America/Sao_Paulo' })
+  @Cron('0 7 * * 1-5', { name: 'followup-tasks-generation', timeZone: BUSINESS_TIME_ZONE })
   async generateDaily() {
     try {
       await this.service.generate();

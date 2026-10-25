@@ -2,14 +2,12 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '../../generated/prisma/client.js';
 import { PrismaService } from '../../database/prisma.service.js';
 
-type Db = PrismaService | Prisma.TransactionClient;
-
 @Injectable()
 export class StageHistoriesRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  create(data: Prisma.StageHistoryUncheckedCreateInput, db: Db = this.prisma) {
-    return db.stageHistory.create({ data });
+  create(data: Prisma.StageHistoryUncheckedCreateInput, tx: Prisma.TransactionClient) {
+    return tx.stageHistory.create({ data });
   }
 
   async opportunityExists(opportunityId: string) {

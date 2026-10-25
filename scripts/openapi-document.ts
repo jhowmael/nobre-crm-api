@@ -4,15 +4,15 @@ import { Test } from '@nestjs/testing';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-export const OPENAPI_FILE = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'openapi.json');
-
-export const OFFLINE_DATABASE_URL = 'postgresql://openapi:openapi@localhost:5432/openapi';
-
 export interface OpenApiSources {
   AppModule: Type;
   PrismaService: Type;
   buildOpenApiDocument: (app: INestApplication) => OpenAPIObject;
 }
+
+export const OPENAPI_FILE = resolve(dirname(fileURLToPath(import.meta.url)), '..', 'openapi.json');
+
+export const OFFLINE_DATABASE_URL = 'postgresql://openapi:openapi@localhost:5432/openapi';
 
 export function sortKeys(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(sortKeys);

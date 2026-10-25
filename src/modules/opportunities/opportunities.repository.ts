@@ -1,16 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '../../generated/prisma/client.js';
-import { PrismaService } from '../../database/prisma.service.js';
+import { PrismaService, type Db } from '../../database/prisma.service.js';
 import type { Stage } from '../../generated/prisma/enums.js';
 import type { OpportunitySortField, SortDirection } from './dto/opportunities-request.dto.js';
-
-export type Db = PrismaService | Prisma.TransactionClient;
-
-export const opportunityInclude = {
-  seller: { select: { id: true, name: true } },
-  lossReason: { select: { code: true, label: true } },
-  items: { orderBy: { id: 'asc' } },
-} satisfies Prisma.OpportunityInclude;
 
 export type OpportunityRecord = Prisma.OpportunityGetPayload<{ include: typeof opportunityInclude }>;
 
@@ -30,9 +22,13 @@ export interface PageWindow {
   take: number;
 }
 
-const CODE_PATTERN = /^opp-?(\d+)$/i;
+export const opportunityInclude = {
+  seller: { select: { id: true, name: true } },
+  lossReason: { select: { code: true, label: true } },
+  items: { orderBy: { id: 'asc' } },
+} satisfies Prisma.OpportunityInclude;
 
-const DEFAULT_SORTING: OpportunitySorting = { field: 'number', direction: 'asc' };
+const CODE_PATTERN = /^opp-?(\d+)$/i;
 
 function buildOrderBy({ field, direction }: OpportunitySorting): Prisma.OpportunityOrderByWithRelationInput[] {
   const tieBreaker: Prisma.OpportunityOrderByWithRelationInput = { number: direction === 'desc' && field === 'number' ? 'desc' : 'asc' };
@@ -56,13 +52,8 @@ export class OpportunitiesRepository {
     return this.prisma.$transaction(work);
   }
 
-  findMany(
-    filters: OpportunityFilters,
-    sorting: OpportunitySorting = DEFAULT_SORTING,
-    window?: PageWindow,
-    db: Db = this.prisma,
-  ): Promise<OpportunityRecord[]> {
-    return db.opportunity.findMany({
+  findMany(filters: OpportunityFilters, sorting: OpportunitySorting, window?: PageWindow): Promise<OpportunityRecord[]> {
+    return this.prisma.opportunity.findMany({
       where: this.buildWhere(filters),
       include: opportunityInclude,
       orderBy: buildOrderBy(sorting),
@@ -71,16 +62,16 @@ export class OpportunitiesRepository {
     });
   }
 
-  count(filters: OpportunityFilters, db: Db = this.prisma): Promise<number> {
-    return db.opportunity.count({ where: this.buildWhere(filters) });
+  count(filters: OpportunityFilters): Promise<number> {
+    return this.prisma.opportunity.count({ where: this.buildWhere(filters) });
   }
 
   findById(id: string, db: Db = this.prisma): Promise<OpportunityRecord | null> {
     return db.opportunity.findUnique({ where: { id }, include: opportunityInclude });
   }
 
-  findOpen(db: Db = this.prisma): Promise<OpportunityRecord[]> {
-    return db.opportunity.findMany({
+  findOpen(): Promise<OpportunityRecord[]> {
+    return this.prisma.opportunity.findMany({
       where: { stage: { notIn: ['FECHAMENTO', 'PERDIDA'] } },
       include: opportunityInclude,
       orderBy: { number: 'asc' },
@@ -92,15 +83,15 @@ export class OpportunitiesRepository {
     return rows.length > 0;
   }
 
-  create(data: Prisma.OpportunityUncheckedCreateInput, tx: Db = this.prisma): Promise<OpportunityRecord> {
+  create(data: Prisma.OpportunityUncheckedCreateInput, tx: Prisma.TransactionClient): Promise<OpportunityRecord> {
     return tx.opportunity.create({ data, include: opportunityInclude });
   }
 
-  update(id: string, data: Prisma.OpportunityUncheckedUpdateInput, tx: Db = this.prisma): Promise<OpportunityRecord> {
+  update(id: string, data: Prisma.OpportunityUncheckedUpdateInput, tx: Prisma.TransactionClient): Promise<OpportunityRecord> {
     return tx.opportunity.update({ where: { id }, data, include: opportunityInclude });
   }
 
-  async replaceItems(opportunityId: string, items: { name: string; quantity: number }[], tx: Db = this.prisma) {
+  async replaceItems(opportunityId: string, items: { name: string; quantity: number }[], tx: Prisma.TransactionClient) {
     await tx.opportunityItem.deleteMany({ where: { opportunityId } });
     await tx.opportunityItem.createMany({ data: items.map((item) => ({ name: item.name.trim(), quantity: item.quantity, opportunityId })) });
   }
