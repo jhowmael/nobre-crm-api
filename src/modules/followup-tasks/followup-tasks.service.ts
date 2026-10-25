@@ -3,6 +3,7 @@ import { ClockService, toBusinessDate } from '../../common/clock/clock.service.j
 import { fromDateOnly, toDateOnly } from '../../common/utils/dates.js';
 import type { FollowupTaskLevel } from '../../generated/prisma/enums.js';
 import { evaluateAttention, type AttentionCode } from '../opportunities/domain/attention.js';
+import { opportunityCode } from '../opportunities/domain/stage-rules.js';
 import { OpportunitiesRepository } from '../opportunities/opportunities.repository.js';
 import type { ListFollowupTasksQueryDto } from './dto/followup-tasks-request.dto.js';
 import type { FollowupTaskResponseDto, GenerateFollowupTasksResponseDto } from './dto/followup-tasks-response.dto.js';
@@ -21,7 +22,7 @@ const DONE_LOOKBACK_MS = 48 * 3_600_000;
 const toResponse = (task: FollowupTaskRecord): FollowupTaskResponseDto => ({
   id: task.id,
   opportunityId: task.opportunityId,
-  opportunityCode: `OPP-${task.opportunity.number}`,
+  opportunityCode: opportunityCode(task.opportunity.number),
   company: task.opportunity.company,
   sellerId: task.sellerId,
   reasonKey: task.reasonKey as AttentionCode,

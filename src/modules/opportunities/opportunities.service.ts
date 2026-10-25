@@ -9,6 +9,7 @@ import {
   allowedTransitions,
   isFinalStage,
   isLossReasonPending,
+  opportunityCode,
   validateLossReason,
   validateMove,
   validateProposalValidity,
@@ -52,7 +53,7 @@ const toResponse = (record: OpportunityRecord, today: string): OpportunityRespon
 
   return {
     id: record.id,
-    code: `OPP-${record.number}`,
+    code: opportunityCode(record.number),
     company: record.company,
     seller: record.seller,
     items: record.items.map((item) => ({ id: item.id, name: item.name, quantity: item.quantity })),

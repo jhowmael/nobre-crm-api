@@ -20,8 +20,7 @@ export class OpportunityItemsService {
 
   add(opportunityId: string, dto: CreateOpportunityItemRequestDto): Promise<OpportunityItemResponseDto> {
     return this.repository.transaction(async (tx) => {
-      const stage = await this.lockEditable(opportunityId, tx);
-      if (isFinalStage(stage)) throw new UnprocessableEntityException(FINAL_STAGE_MESSAGE);
+      await this.lockEditable(opportunityId, tx);
       const { id, name, quantity } = await this.repository.create(opportunityId, { name: dto.name.trim(), quantity: dto.quantity }, tx);
       return { id, name, quantity };
     });
@@ -30,7 +29,6 @@ export class OpportunityItemsService {
   async remove(opportunityId: string, id: string): Promise<void> {
     await this.repository.transaction(async (tx) => {
       const stage = await this.lockEditable(opportunityId, tx);
-      if (isFinalStage(stage)) throw new UnprocessableEntityException(FINAL_STAGE_MESSAGE);
       if (!(await this.repository.findOne(opportunityId, id, tx))) throw new NotFoundException('Item não encontrado.');
       if (hasProposal(stage) && (await this.repository.countByOpportunity(opportunityId, tx)) <= 1) {
         throw new UnprocessableEntityException('A oportunidade precisa ter ao menos um item de brinde nesta etapa.');
@@ -42,6 +40,7 @@ export class OpportunityItemsService {
   private async lockEditable(opportunityId: string, tx: Prisma.TransactionClient): Promise<Stage> {
     const stage = await this.repository.lockOpportunity(opportunityId, tx);
     if (!stage) throw new NotFoundException('Oportunidade não encontrada.');
+    if (isFinalStage(stage)) throw new UnprocessableEntityException(FINAL_STAGE_MESSAGE);
     return stage;
   }
 }

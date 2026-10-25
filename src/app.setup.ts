@@ -7,7 +7,7 @@ import { AllExceptionsFilter } from './common/filters/all-exceptions.filter.js';
 import { REQUEST_ID_HEADER, requestIdMiddleware } from './common/http/request-id.middleware.js';
 import { createValidationPipe } from './common/http/validation.js';
 
-export const DOCS_PATH = 'docs';
+const DOCS_PATH = 'docs';
 
 export function configureApp(app: INestApplication): INestApplication {
   const config = app.get(ConfigService);

@@ -2,11 +2,6 @@ import { applyDecorators, BadRequestException, ParseUUIDPipe, ValidationPipe, ty
 import { IsDateString, Matches } from 'class-validator';
 import type { RuleViolationResponseDto } from './error-response.dto.js';
 
-const describe = (field: string, key: string, message: string) => {
-  if (key === 'whitelistValidation') return `O campo ${field} não é permitido.`;
-  return message;
-};
-
 export const createValidationPipe = () =>
   new ValidationPipe({
     whitelist: true,
@@ -28,8 +23,8 @@ export const IsDateOnly = (message: string) =>
 export function flattenValidationErrors(errors: ValidationError[], parent = ''): RuleViolationResponseDto[] {
   return errors.flatMap((error) => {
     const field = parent ? `${parent}.${error.property}` : error.property;
-    const firstDeclared = Object.entries(error.constraints ?? {}).at(-1);
-    const own = firstDeclared ? [{ field, message: describe(field, ...firstDeclared) }] : [];
+    const [rule, message] = Object.entries(error.constraints ?? {}).at(-1) ?? [];
+    const own = message ? [{ field, message: rule === 'whitelistValidation' ? `O campo ${field} não é permitido.` : message }] : [];
     return [...own, ...flattenValidationErrors(error.children ?? [], field)];
   });
 }

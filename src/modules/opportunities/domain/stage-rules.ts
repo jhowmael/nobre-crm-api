@@ -25,7 +25,7 @@ export interface MoveInput {
   itemCount?: number;
 }
 
-export const STAGE_ORDER: Stage[] = [
+const STAGE_ORDER: Stage[] = [
   Stage.PRIMEIRO_CONTATO,
   Stage.APRESENTACAO_ORCAMENTO,
   Stage.FOLLOW_UP,
@@ -82,6 +82,8 @@ export const NOT_INFORMED_LOSS_REASON = 'NOT_INFORMED';
 
 export const isLossReasonPending = (stage: Stage, lossReasonCode: string | null) =>
   stage === Stage.PERDIDA && (lossReasonCode == null || lossReasonCode === NOT_INFORMED_LOSS_REASON);
+
+export const opportunityCode = (number: number) => `OPP-${number}`;
 
 const toBrazilianDate = (iso: string) => iso.slice(0, 10).split('-').reverse().join('/');
 

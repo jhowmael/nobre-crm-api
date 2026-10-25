@@ -22,7 +22,7 @@ import {
 import { OpportunityResponseDto } from './dto/opportunities-response.dto.js';
 import { OpportunitiesService } from './opportunities.service.js';
 
-export const TOTAL_COUNT_HEADER = 'X-Total-Count';
+const TOTAL_COUNT_HEADER = 'X-Total-Count';
 
 @ApiTags('opportunities')
 @ApiSecurity(API_KEY_SECURITY)

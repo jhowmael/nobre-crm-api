@@ -9,10 +9,8 @@ const databaseUrl = process.env['TEST_DATABASE_URL'] || explicitDatabaseUrl || '
 process.env['TEST_DATABASE_URL'] = databaseUrl;
 
 export default defineConfig({
-  resolve: { tsconfigPaths: true },
   test: {
     globals: true,
-    root: './',
     include: ['test/**/*.e2e-spec.ts'],
     globalSetup: ['./test/support/global-setup.ts'],
     fileParallelism: false,

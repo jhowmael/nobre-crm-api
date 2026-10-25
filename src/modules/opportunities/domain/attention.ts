@@ -40,11 +40,11 @@ export const ATTENTION_CODES = [
   'EVENT_PAST',
 ] as const;
 
-export const NO_CONTACT_MEDIUM_DAYS = 5;
-export const NO_CONTACT_HIGH_DAYS = 7;
-export const PROPOSAL_EXPIRING_DAYS = 3;
-export const EVENT_NEAR_DAYS = 7;
-export const FORECAST_EVENT_DAYS = 3;
+const NO_CONTACT_MEDIUM_DAYS = 5;
+const NO_CONTACT_HIGH_DAYS = 7;
+const PROPOSAL_EXPIRING_DAYS = 3;
+const EVENT_NEAR_DAYS = 7;
+const FORECAST_EVENT_DAYS = 3;
 
 const RANK: Record<AttentionLevel, number> = { none: 0, medium: 1, high: 2 };
 

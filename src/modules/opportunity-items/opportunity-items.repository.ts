@@ -1,9 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '../../generated/prisma/client.js';
-import { PrismaService } from '../../database/prisma.service.js';
+import { PrismaService, type Db } from '../../database/prisma.service.js';
 import type { Stage } from '../../generated/prisma/enums.js';
-
-type Db = PrismaService | Prisma.TransactionClient;
 
 @Injectable()
 export class OpportunityItemsRepository {
@@ -18,12 +16,12 @@ export class OpportunityItemsRepository {
     return rows[0]?.stage ?? null;
   }
 
-  findOpportunityStage(opportunityId: string, db: Db = this.prisma) {
-    return db.opportunity.findUnique({ where: { id: opportunityId }, select: { id: true, stage: true } });
+  findOpportunityStage(opportunityId: string) {
+    return this.prisma.opportunity.findUnique({ where: { id: opportunityId }, select: { id: true, stage: true } });
   }
 
-  findByOpportunity(opportunityId: string, db: Db = this.prisma) {
-    return db.opportunityItem.findMany({ where: { opportunityId }, orderBy: { id: 'asc' } });
+  findByOpportunity(opportunityId: string) {
+    return this.prisma.opportunityItem.findMany({ where: { opportunityId }, orderBy: { id: 'asc' } });
   }
 
   findOne(opportunityId: string, id: string, db: Db = this.prisma) {

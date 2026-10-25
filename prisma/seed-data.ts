@@ -1,5 +1,7 @@
+import { addDays, fromDateOnly } from '../src/common/utils/dates.js';
 import type { PrismaClient } from '../src/generated/prisma/client.js';
 import type { Stage } from '../src/generated/prisma/enums.js';
+import { NOT_INFORMED_LOSS_REASON } from '../src/modules/opportunities/domain/stage-rules.js';
 
 export interface SeedOpportunity {
   number: number;
@@ -13,13 +15,8 @@ export interface SeedOpportunity {
   stage: Stage;
 }
 
-export const MIGRATION_LOSS_REASON_CODE = 'NOT_INFORMED';
 export const MIGRATION_LOSS_REASON_LABEL = 'Não informado (migração)';
 export const MIGRATION_CONTACT_NOTE = 'Último contato registrado na migração.';
-
-const day = (iso: string) => new Date(`${iso}T00:00:00.000Z`);
-
-const addDays = (iso: string, days: number) => new Date(day(iso).getTime() + days * 86_400_000).toISOString().slice(0, 10);
 
 export const SEED_SELLERS = [
   { name: 'Ana', email: 'ana@nobrebrindes.example' },
@@ -51,7 +48,7 @@ export async function seedDatabase(prisma: PrismaClient) {
     throw new Error('O seed de dados fictícios não pode rodar em produção.');
   }
 
-  const catalog = await prisma.lossReason.findUnique({ where: { code: MIGRATION_LOSS_REASON_CODE } });
+  const catalog = await prisma.lossReason.findUnique({ where: { code: NOT_INFORMED_LOSS_REASON } });
   if (!catalog) throw new Error('Catálogo de motivos de perda ausente: aplique as migrations antes do seed.');
 
   await prisma.$transaction(async (tx) => {
@@ -78,12 +75,12 @@ export async function seedDatabase(prisma: PrismaClient) {
           sellerId,
           stage: row.stage,
           estimatedValue: row.estimatedValue,
-          lastContactAt: day(row.lastContactAt),
-          proposalValidUntil: row.proposalValidUntil ? day(row.proposalValidUntil) : null,
-          eventDate: day(row.eventDate),
-          lossReasonCode: lost ? MIGRATION_LOSS_REASON_CODE : null,
+          lastContactAt: fromDateOnly(row.lastContactAt),
+          proposalValidUntil: row.proposalValidUntil ? fromDateOnly(row.proposalValidUntil) : null,
+          eventDate: fromDateOnly(row.eventDate),
+          lossReasonCode: lost ? NOT_INFORMED_LOSS_REASON : null,
           items: { create: [row.item] },
-          contactLogs: { create: [{ sellerId, contactedAt: day(row.lastContactAt), note: MIGRATION_CONTACT_NOTE }] },
+          contactLogs: { create: [{ sellerId, contactedAt: fromDateOnly(row.lastContactAt), note: MIGRATION_CONTACT_NOTE }] },
           stageHistory: {
             create: path.map((to, step) => ({
               fromStage: step === 0 ? null : path[step - 1],

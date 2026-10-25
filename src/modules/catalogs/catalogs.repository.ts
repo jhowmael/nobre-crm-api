@@ -1,8 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '../../generated/prisma/client.js';
-import { PrismaService } from '../../database/prisma.service.js';
-
-type Db = PrismaService | Prisma.TransactionClient;
+import { PrismaService, type Db } from '../../database/prisma.service.js';
 
 @Injectable()
 export class CatalogsRepository {
